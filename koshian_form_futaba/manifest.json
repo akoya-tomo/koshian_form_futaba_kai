@@ -1,0 +1,30 @@
+{
+    "manifest_version": 2,
+    "name": "KOSHIAN 返信フォーム拡張",
+    "version": "0.1.1",
+    "description": "返信した後ページをリロードしないようにします",
+    "icons": {
+        "48": "icons/icon-48.png"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "*://*.2chan.net/*/res/*"
+            ],
+            "js": [
+                "res.js"
+            ]
+        }
+    ],
+    "options_ui":{
+        "page":"options.html"
+    },
+    "permissions":[
+        "storage"
+    ],
+    "applications": {
+        "gecko": {
+          "id": "{04c1c518-71f7-49dc-92a8-480a2bf3cba0}"
+        }
+      }
+}
