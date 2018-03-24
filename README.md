@@ -10,7 +10,8 @@
   - ふたば☆ちゃんねるのレスページで返信した後ページをリロードしないようにします
 * 修正された機能（KOSHIAN 返信フォーム拡張 改）
   - 返信時に添付ファイルをクリアするように修正  
-  返信時に添付ファイルをクリアするようにしました。（[futaba form image previewer](https://greasyfork.org/ja/scripts/36659-futaba-form-image-previewer/)対応）   
+  返信時に添付ファイルをクリアするようにしました。  
+  （[futaba form image previewer](https://greasyfork.org/ja/scripts/36659-futaba-form-image-previewer/)にも対応しています）   
 
 ## インストール
 [GitHub](https://github.com/akoya-tomo/koshian_form_futaba_kai/releases/download/v0.1.0/koshian_form_futaba_kai-0.1.0-an.fx.xpi)  
