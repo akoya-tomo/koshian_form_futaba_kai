@@ -93,6 +93,15 @@ function main() {
     dummy.onload = (event) => {
         try {
             textarea.value = "";
+            let clear_button = document.getElementById("ffip_file_clear");
+            if (clear_button) {
+                clear_button.click();
+            } else {
+                let upfile = document.querySelector("#ftbl input[name='upfile']");
+                if (upfile) {
+                    upfile.value = "";
+                }
+            }
 
             let new_document = dummy.contentDocument;
             if (!new_document) {
@@ -135,6 +144,7 @@ function main() {
             }
         } catch (e) {
             //
+            console.log("res.js onload error:" + e);
         }
         
         dummy.src = "about:blank";
