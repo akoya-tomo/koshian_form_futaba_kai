@@ -1,0 +1,31 @@
+{
+    "manifest_version": 2,
+    "name": "KOSHIAN 返信フォーム拡張 改",
+    "version": "0.1.0",
+    "description": "返信した後ページをリロードしないようにします",
+    "icons": {
+        "48": "icons/icon-48.png"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "*://*.2chan.net/*/res/*"
+            ],
+            "js": [
+                "res.js"
+            ]
+        }
+    ],
+    "options_ui":{
+        "page":"options.html"
+    },
+    "permissions":[
+        "storage"
+    ],
+    "applications": {
+        "gecko": {
+          "id": "{1BE13B04-2E5B-11E8-90A5-384B8462A347}",
+          "update_url": "https://raw.githubusercontent.com/akoya-tomo/koshian_form_futaba_kai/master/updates.json"
+        }
+      }
+}
