@@ -6,6 +6,8 @@
     "icons": {
         "48": "icons/icon-48.png"
     },
+    "author": "akoya_tomo",
+    "homepage_url": "https://github.com/akoya-tomo/koshian_form_futaba_kai/",
     "content_scripts": [
         {
             "matches": [
