@@ -1,11 +1,13 @@
 {
     "manifest_version": 2,
     "name": "KOSHIAN 返信フォーム拡張 改",
-    "version": "0.1.0",
+    "version": "0.2.0rc1",
     "description": "返信した後ページをリロードしないようにします",
     "icons": {
         "48": "icons/icon-48.png"
     },
+    "author": "akoya_tomo",
+    "homepage_url": "https://github.com/akoya-tomo/koshian_form_futaba_kai/",
     "content_scripts": [
         {
             "matches": [
@@ -27,5 +29,5 @@
           "id": "{1BE13B04-2E5B-11E8-90A5-384B8462A347}",
           "update_url": "https://raw.githubusercontent.com/akoya-tomo/koshian_form_futaba_kai/master/updates.json"
         }
-      }
+    }
 }
