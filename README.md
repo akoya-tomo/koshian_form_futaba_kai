@@ -21,12 +21,14 @@
 ※「接続エラーのため、アドオンをダウンロードできませんでした。」と表示されてインストール出来ない時はインストールボタンを右クリックしてxpiファイルをダウンロードし、メニューのツール→アドオン（またはCtrl+Shift+A）で表示されたアドオンマネージャーのページにxpiファイルをドラッグ＆ドロップして下さい。  
 
 ### **● テストバージョン**
+* v0.2.0rc2 2018-07-25
+  - 返信時に「参照元異常」になる不具合を修正  
 * v0.2.0rc1 2018-07-24
   - 返信時に状況やエラーメッセージを表示する機能を追加  
     返信時に「返信中」や「スレ更新中」などの状態やサーバーからのエラーメッセージを表示します。  
     ![スクリーンショット](images/screenshot01.png "スクリーンショット")  
     **GitHub**  
-    [![インストールボタン](images/install_button.png "クリックでアドオンをインストール")](https://github.com/akoya-tomo/koshian_form_futaba_kai/releases/download/v0.2.0rc1/koshian_form_futaba_kai-0.2.0rc1-an+fx.xpi)  
+    [![インストールボタン](images/install_button.png "クリックでアドオンをインストール")](https://github.com/akoya-tomo/koshian_form_futaba_kai/releases/download/v0.2.0rc2/koshian_form_futaba_kai-0.2.0rc2-an+fx.xpi)  
     ※このバージョンはリリース前のテストバージョンになります。
 
 ## 注意事項
