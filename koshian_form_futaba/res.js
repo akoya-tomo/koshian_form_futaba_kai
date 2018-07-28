@@ -125,7 +125,6 @@ class Form {
         xhr.open("POST", this.dom.action);
         this.boundary = createBoundary();
         xhr.setRequestHeader("Content-Type", "multipart/form-data; boundary=" + this.boundary);
-        //xhr.setRequestHeader("referer", location.href);
 
         for (let elm of this.dom.elements) {
             if (elm.name) {
@@ -148,7 +147,6 @@ class Form {
             )
         );
 
-        //xhr.setRequestHeader("Content-Length", this.buffer.byteLength);
         xhr.send(this.buffer);
         this.notify.moveTo(10000);
         this.notify.setText("返信中……");
