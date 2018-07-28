@@ -103,9 +103,14 @@ class Form {
             return;
         }
 
-        // ファイルの読み取りが完了していないときは実行を遅延
+        // ファイルの読み込みが完了していないときは実行を遅延
         if (this.file.dom && !this.file.buffer && this.file.dom.files.length > 0) {
-            setTimeout(this.submit.bind(this), 10);
+            if (this.file.reader.readyState === FileReader.LOADING) {
+                setTimeout(this.submit.bind(this), 10);
+            } else {
+                this.notify.setAlarmText("添付ファイルの読み込みに失敗しました。もう一度ファイルを選択し直してください");
+                fixFormPosition();
+            }
             return;
         }
 
@@ -120,7 +125,6 @@ class Form {
         xhr.open("POST", this.dom.action);
         this.boundary = createBoundary();
         xhr.setRequestHeader("Content-Type", "multipart/form-data; boundary=" + this.boundary);
-        //xhr.setRequestHeader("referer", location.href);
 
         for (let elm of this.dom.elements) {
             if (elm.name) {
@@ -143,7 +147,6 @@ class Form {
             )
         );
 
-        //xhr.setRequestHeader("Content-Length", this.buffer.byteLength);
         xhr.send(this.buffer);
         this.notify.moveTo(10000);
         this.notify.setText("返信中……");
@@ -404,31 +407,32 @@ function main() {
 
     form.file = {
         dom    : form.dom.querySelector('input[name="upfile"]'),
-        arrayBuffer : null,
+        reader : null,
+        buffer : null,
         name : null,
         type : null
     };
 
     if (form.file.dom) {
-        let reader = new FileReader();
+        form.file.reader = new FileReader();
 
-        reader.addEventListener("load", () => {
-            form.file.buffer = reader.result;
+        form.file.reader.addEventListener("load", () => {
+            form.file.buffer = form.file.reader.result;
             form.file.name = form.file.dom.files[0].name;
             form.file.type = form.file.dom.files[0].type;
         });
 
         // ページ読み込み時にファイルが既にあれば読み込む
         if (form.file.dom.files[0]) {
-            reader.readAsArrayBuffer(form.file.dom.files[0]);
+            form.file.reader.readAsArrayBuffer(form.file.dom.files[0]);
         }
 
         form.file.dom.addEventListener("change", () => {
-            if (reader.readyState === FileReader.LOADING) {
-                reader.abort();
+            if (form.file.reader.readyState === FileReader.LOADING) {
+                form.file.reader.abort();
             }
 
-            reader.readAsArrayBuffer(form.file.dom.files[0]);
+            form.file.reader.readAsArrayBuffer(form.file.dom.files[0]);
         });
     }
 }
