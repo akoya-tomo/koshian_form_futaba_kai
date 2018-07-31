@@ -259,10 +259,10 @@ class Form {
                 document.dispatchEvent(new CustomEvent("KOSHIAN_reload_notfound"));
                 break;
               default:  // eslint-disable-line indent
-                this.notify.setText(`スレ更新失敗 CODE:${xhr.status}`);
+                this.notify.setAlarmText(`スレ更新失敗 CODE:${xhr.status} 返信は成功している可能性があります`);
             }
         }catch(e){
-            this.notify.setText(`スレ更新失敗 CODE:${xhr.status}`);
+            this.notify.setAlarmText(`スレ更新失敗 CODE:${xhr.status} 返信は成功している可能性があります`);
             console.error("KOSHIAN_form/res.js onBodyLoad error: " + e);  // eslint-disable-line no-console
         }
 
@@ -285,14 +285,14 @@ class Form {
         }
 
         if(!new_document){
-            this.notify.setText("スレが空です");
+            this.notify.setAlarmText("スレ更新失敗。スレが空です。返信は成功している可能性があります");
             return;
         }
 
         let thre = document.getElementsByClassName("thre")[0];
         let new_thre = new_document.getElementsByClassName("thre")[0];
         if(!thre || !new_thre){
-            this.notify.setText("スレがありません");
+            this.notify.setAlarmText("スレ更新失敗。スレがありません。返信は成功している可能性があります");
             return;
         }
 
@@ -328,13 +328,13 @@ class Form {
 
     onError() {
         this.loading = false;
-        this.notify.setText("通信失敗");
+        this.notify.setAlarmText("通信失敗");
         fixFormPosition();
     }
 
     onTimeout() {
         this.loading = false;
-        this.notify.setText("接続がタイムアウトしました");
+        this.notify.setAlarmText("接続がタイムアウトしました");
         fixFormPosition();
     }
 
