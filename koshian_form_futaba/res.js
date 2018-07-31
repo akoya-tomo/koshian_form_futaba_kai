@@ -60,6 +60,8 @@ class Notify {
 
     setText(text) {
         this.text.textContent = text;
+        this.notify.style.color = "";
+        this.notify.style.fontWeight = "";
     }
 
     setAlarmText(text) {
