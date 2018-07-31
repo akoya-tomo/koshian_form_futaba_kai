@@ -17,9 +17,9 @@
   （[futaba form image previewer](https://greasyfork.org/ja/scripts/36659-futaba-form-image-previewer/)にも対応しています）  
 
 ## インストール
-### **● 最新バージョン**(v0.2.0)
+### **● 最新バージョン**(v0.2.1)
 **GitHub**  
-[![インストールボタン](images/install_button.png "クリックでアドオンをインストール")](https://github.com/akoya-tomo/koshian_form_futaba_kai/releases/download/v0.2.0/koshian_form_futaba_kai-0.2.0-an+fx.xpi)  
+[![インストールボタン](images/install_button.png "クリックでアドオンをインストール")](https://github.com/akoya-tomo/koshian_form_futaba_kai/releases/download/v0.2.1/koshian_form_futaba_kai-0.2.1-an+fx.xpi)  
 ※このアドオンはオリジナル版同様に実験的アドオンになります。不具合発生時は下の安定バージョンをご利用ください。  
 
 ※「接続エラーのため、アドオンをダウンロードできませんでした。」と表示されてインストール出来ない時はインストールボタンを右クリックしてxpiファイルをダウンロードし、メニューのツール→アドオン（またはCtrl+Shift+A）で表示されたアドオンマネージャーのページにxpiファイルをドラッグ＆ドロップして下さい。  
@@ -41,6 +41,9 @@
 * このアドオンは文字コード変換に[encoding.js](https://github.com/polygonplanet/encoding.js)を使用しています。  
 
 ## 更新履歴
+* v0.2.1 2018-07-31
+  - エラーメッセージを表示した後に通常メッセージが赤字・太字で表示されてしまう不具合を修正
+  - エラーメッセージを修正
 * v0.2.0 2018-07-28
   - 返信時に状況やエラーメッセージを表示する機能を追加
 * v0.1.0 2018-03-24
