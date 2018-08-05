@@ -3,6 +3,8 @@
 const XMLHttpRequest = ( typeof content != 'undefined' && typeof content.XMLHttpRequest == 'function' ) ? content.XMLHttpRequest  : window.XMLHttpRequest;
 const DEFAULT_TIME_OUT = 60 * 1000;
 const DEFAULT_AUTO_SCROLL = true;
+const DEFAULT_USE_COMMENT_CLEAR = true;
+const DEFAULT_USE_SAGE = true;
 const DEFAULT_EXPAND_FILE_INPUT = false;
 const DEFAULT_PREVIEW_MAX_SIZE = 250;
 const DEFAULT_DROPAREA_HEIGHT = 0;
@@ -14,6 +16,8 @@ const DEFAULT_DROPAREA_TEXT = "ここにドロップ";
 const INPUT_FILE_TEXT = "ファイルが選択されていません。";
 let time_out = DEFAULT_TIME_OUT;
 let auto_scroll = DEFAULT_AUTO_SCROLL;
+let use_comment_clear = DEFAULT_USE_COMMENT_CLEAR;
+let use_sage = DEFAULT_USE_SAGE;
 let expand_file_input = DEFAULT_EXPAND_FILE_INPUT;
 let preview_max_size = DEFAULT_PREVIEW_MAX_SIZE;
 let droparea_height = DEFAULT_DROPAREA_HEIGHT;
@@ -399,6 +403,63 @@ function fixFormPosition() {
 }
 
 /**
+ * コメントクリアボタン配置
+ * @param {Element} textarea 返信フォームのコメント入力textarea要素
+ */
+function makeCommentClearButton(textarea) {
+    let button = document.getElementById("KOSHIAN_form_comment_clear_button");
+    if (use_comment_clear) {
+        if (!button) {
+            button = document.createElement("div");
+            button.id = "KOSHIAN_form_comment_clear_button";
+            button.className = "KOSHIAN-form-button";
+            button.textContent = "[クリア]";
+            button.title = "コメントをクリアします";
+            let comment_td = textarea.parentElement.previousElementSibling;
+            if (comment_td) {
+                comment_td.insertBefore(button, comment_td.firstChild.nextSibling);
+            }
+        }
+        button.onclick = () => {
+            textarea.value = "";
+        };
+    } else if (button) {
+        button.parentElement.removeChild(button);
+    }
+}
+
+/**
+ * sageボタン配置
+ * @param {Element} form 返信フォームform要素
+ */
+function makeSageButton(form) {
+    let button = document.getElementById("KOSHIAN_form_sage_button");
+    if (use_sage) {
+        let email = form.querySelector("input[name='email']");
+        if (!button) {
+            button = document.createElement("span");
+            button.id = "KOSHIAN_form_sage_button";
+            button.className = "KOSHIAN-form-sage-button";
+            button.textContent = "[sage]";
+            button.title = "sageを切り替えます";
+            if (email) {
+                email.parentElement.insertBefore(button, email.nextSibling);
+            }
+        }
+        button.onclick = () => {
+            let match = email.value.match(/[\s　]*sage[\s　]*/);    // eslint-disable-line no-irregular-whitespace
+            if (match) {
+                email.value = email.value.replace(match, "");
+            } else {
+                email.value = "sage " + email.value;
+            }
+        };
+    } else if (button) {
+        button.parentElement.removeChild(button);
+    }
+}
+
+/**
  * ファイル入力画面初期化
  * @param {Object} file 添付ファイルの情報を格納したオブジェクト
  */
@@ -673,6 +734,8 @@ function main() {
         form.submit();
     };
 
+    makeCommentClearButton(form.textarea);
+    makeSageButton(form.dom);
 
     form.file.dom = form.dom.querySelector('input[name="upfile"]');
     if (form.file.dom) {
@@ -770,6 +833,8 @@ function onError(error) {
 
 function onSettingGot(result) {
     auto_scroll = safeGetValue(result.auto_scroll, DEFAULT_AUTO_SCROLL);
+    use_comment_clear = safeGetValue(result.use_comment_clear, DEFAULT_USE_COMMENT_CLEAR);
+    use_sage = safeGetValue(result.use_sage, DEFAULT_USE_SAGE);
     expand_file_input = safeGetValue(result.expand_file_input, DEFAULT_EXPAND_FILE_INPUT);
     preview_max_size = safeGetValue(result.preview_max_size, DEFAULT_PREVIEW_MAX_SIZE);
     droparea_height = safeGetValue(result.droparea_height, DEFAULT_DROPAREA_HEIGHT);
@@ -799,6 +864,8 @@ function onSettingChanged(changes, areaName) {
     }
 
     auto_scroll = safeGetValue(changes.auto_scroll.newValue, true);
+    use_comment_clear = safeGetValue(changes.use_comment_clear.newValue, DEFAULT_USE_COMMENT_CLEAR);
+    use_sage = safeGetValue(changes.use_sage.newValue, DEFAULT_USE_SAGE);
     expand_file_input = safeGetValue(changes.expand_file_input.newValue, DEFAULT_EXPAND_FILE_INPUT);
     preview_max_size = safeGetValue(changes.preview_max_size.newValue, DEFAULT_PREVIEW_MAX_SIZE);
     droparea_height = safeGetValue(changes.droparea_height.newValue, DEFAULT_DROPAREA_HEIGHT);
@@ -819,6 +886,12 @@ function onSettingChanged(changes, areaName) {
     document.documentElement.style.setProperty("--droparea-height", droparea_height + "px");
     document.documentElement.style.setProperty("--droparea-border", droparea_border);
 
+    let form = document.getElementById("fm");
+    if (form) {
+        let textarea = form.getElementsByTagName("textarea")[0];
+        if (textarea) makeCommentClearButton(textarea);
+        makeSageButton(form);
+    }
     let droparea = document.getElementById("KOSHIAN_form_preview");
     if (droparea && droparea.className == "KOSHIAN-form-droparea") {
         droparea.textContent = droparea_text;
