@@ -2,7 +2,25 @@
 
 const XMLHttpRequest = ( typeof content != 'undefined' && typeof content.XMLHttpRequest == 'function' ) ? content.XMLHttpRequest  : window.XMLHttpRequest;
 const DEFAULT_TIME_OUT = 60 * 1000;
+const DEFAULT_AUTO_SCROLL = true;
+const DEFAULT_EXPAND_FILE_INPUT = false;
+const DEFAULT_PREVIEW_MAX_SIZE = 250;
+const DEFAULT_DROPAREA_HEIGHT = 0;
+const DEFAULT_VIDEO_AUTOPLAY = true;
+const DEFAULT_VIDEO_LOOP = true;
+const DEFAULT_POPUP_FILE_DIALOG = false;
+const DEFAULT_DROPAREA_BORDER = "2px #eeaa88 solid";
+const DEFAULT_DROPAREA_TEXT = "ここにドロップ";
+const INPUT_FILE_TEXT = "ファイルが選択されていません。";
 let time_out = DEFAULT_TIME_OUT;
+let auto_scroll = DEFAULT_AUTO_SCROLL;
+let expand_file_input = DEFAULT_EXPAND_FILE_INPUT;
+let preview_max_size = DEFAULT_PREVIEW_MAX_SIZE;
+let droparea_height = DEFAULT_DROPAREA_HEIGHT;
+let video_autoplay = DEFAULT_VIDEO_AUTOPLAY;
+let video_loop = DEFAULT_VIDEO_LOOP;
+let popup_file_dialog = DEFAULT_POPUP_FILE_DIALOG;
+let droparea_text = DEFAULT_DROPAREA_TEXT;
 
 class Notify {
     constructor() {
@@ -64,8 +82,6 @@ class Notify {
     }
 }
 
-let auto_scroll = true;
-
 class Form {
     constructor() {
         this.notify = new Notify();
@@ -73,8 +89,16 @@ class Form {
         this.textarea = null;
         this.loading = false;
         this.boundary = null;
-        this.buffer = new Uint8Array();
-        this.file = {};
+        this.buffer = null;
+        this.file = {
+            dom : null,
+            obj : null,
+            reader : null,
+            buffer : null,
+            name : null,
+            size : null,
+            type : null
+        };
     }
 
     submit() {
@@ -105,6 +129,7 @@ class Form {
         this.boundary = createBoundary();
         xhr.setRequestHeader("Content-Type", "multipart/form-data; boundary=" + this.boundary);
 
+        // フォーム内の要素からマルチパートフォームデータ作成
         for (let elm of this.dom.elements) {
             if (elm.name) {
                 if (elm.tagName == "TEXTAREA" || elm.type == "text") {
@@ -120,8 +145,9 @@ class Form {
             }
         }
 
+        // フッタ
         this.buffer = appendBuffer(this.buffer, 
-            unicode2buffer("UTF8",
+            convertUnicode2Buffer("UTF8",
                 "--" + this.boundary + "--"
             )
         );
@@ -132,41 +158,41 @@ class Form {
     }
 
     setText(name, value) {
-        let buffer = unicode2buffer("UTF8", 
+        let buffer = convertUnicode2Buffer("UTF8", 
             "--" + this.boundary + "\r\n" +
             `Content-Disposition: form-data; name="${name}"\r\n` +
             "Content-Type: text/plain; charset=Shift_JIS\r\n" +
             "\r\n"
         );
-        let sjis_buffer = unicode2buffer("Shift_JIS", value);
+        let sjis_buffer = convertUnicode2Buffer("Shift_JIS", value);
         buffer = appendBuffer(buffer, sjis_buffer);
-        buffer = appendBuffer(buffer, unicode2buffer("UTF8", "\r\n"));
+        buffer = appendBuffer(buffer, convertUnicode2Buffer("UTF8", "\r\n"));
         this.buffer = appendBuffer(this.buffer, buffer);
     }
 
     setFile(name) {
         let filename = this.file.name ? "filename" : "";
         let type = this.file.type ? this.file.type : "application/octet-stream";
-        let buffer = unicode2buffer("UTF8",
+        let buffer = convertUnicode2Buffer("UTF8",
             "--" + this.boundary + "\r\n" +
             `Content-Disposition: form-data; name="${name}"; filename="${filename}"\r\n` +
             `Content-Type: ${type}\r\n` +
             "\r\n"
         );
         if (this.file.buffer) buffer = appendBuffer(buffer, this.file.buffer);
-        buffer = appendBuffer(buffer, unicode2buffer("UTF8", "\r\n"));
+        buffer = appendBuffer(buffer, convertUnicode2Buffer("UTF8", "\r\n"));
         this.buffer = appendBuffer(this.buffer, buffer);
     }
 
     setParam(name, value) {
-        let buffer = unicode2buffer("UTF8",
+        let buffer = convertUnicode2Buffer("UTF8",
             "--" + this.boundary + "\r\n" +
             `Content-Disposition: form-data; name="${name}"\r\n` +
             "\r\n"
         );
-        let utf8_buffer = unicode2buffer("UTF8", value);
+        let utf8_buffer = convertUnicode2Buffer("UTF8", value);
         buffer = appendBuffer(buffer, utf8_buffer);
-        buffer = appendBuffer(buffer, unicode2buffer("UTF8", "\r\n"));
+        buffer = appendBuffer(buffer, convertUnicode2Buffer("UTF8", "\r\n"));
         this.buffer = appendBuffer(this.buffer, buffer);
     }
 
@@ -249,16 +275,11 @@ class Form {
 
     addNewResponses(new_document){
         this.textarea.value = "";
-        this.file.buffer = null;
-        this.file.name = null;
-        this.file.type = null;
-        let clear_button = document.getElementById("ffip_file_clear");
+        let clear_button = document.getElementById("KOSHIAN_form_clear_button") || document.getElementById("ffip_file_clear");
         if (clear_button) {
             clear_button.click();
-        } else {
-            if (this.file.dom) {
-                this.file.dom.value = "";
-            }
+        } else if (this.file.dom) {
+            clearFile(this.file);
         }
 
         if(!new_document){
@@ -317,28 +338,45 @@ class Form {
 
 }
 
+/**
+ * バウンダリ文字列生成
+ * @return {string} バウンダリ文字列
+ */
 function createBoundary() {
+    // 27文字の"-"と最大15文字のランダムな数字で生成
     let boundary = "---------------------------";
     boundary += Math.floor(Math.random() * (10 ** 15));
     return boundary;
 }
 
-function unicode2buffer(to_encoding, str){
+/**
+ * Unicode文字列から指定文字コードのバッファに変換
+ * @param {string} to_encoding 変換先文字コード
+ * @param {string} str 対象のUnicode文字列
+ * @return {ArrayBuffer} 変換したバッファ
+ */
+function convertUnicode2Buffer(to_encoding, str){
     let buffer = Encoding.convert(str, {
         to: to_encoding,
         from: "UNICODE",
         type: "arrayBuffer"
     });
-    // bufferはUint16なのでUint8に変換
-    let uint8buffer = new Uint8Array(buffer); 
-    return uint8buffer.buffer;
+    // 変換したバッファからUint8のビューを作成して、そのバッファを返す
+    let uint8_buffer = new Uint8Array(buffer); 
+    return uint8_buffer.buffer;
 }
 
-function appendBuffer(buf1,buf2) {
-    var uint8array = new Uint8Array(buf1.byteLength + buf2.byteLength);
-    uint8array.set(new Uint8Array(buf1),0);
-    uint8array.set(new Uint8Array(buf2),buf1.byteLength);
-    return uint8array.buffer;
+/**
+ * バッファ結合
+ * @param {ArrayBuffer} buf1 結合するバッファ
+ * @param {ArrayBuffer} buf2 結合するバッファ
+ * @return {ArrayBuffer} 結合したバッファ
+ */
+function appendBuffer(buf1, buf2) {
+    let uint8_buffer = new Uint8Array(buf1.byteLength + buf2.byteLength);
+    uint8_buffer.set(new Uint8Array(buf1),0);
+    uint8_buffer.set(new Uint8Array(buf2),buf1.byteLength);
+    return uint8_buffer.buffer;
 }
 
 function fixFormPosition() {
@@ -358,6 +396,257 @@ function fixFormPosition() {
     let rect = uform.getBoundingClientRect();
     let top = rect.y + document.documentElement.scrollTop;
     form.style.top = `${top}px`;
+}
+
+/**
+ * ファイル入力画面初期化
+ * @param {Object} file 添付ファイルの情報を格納したオブジェクト
+ */
+function initInputButton(file) {
+    if (file.dom.id) {
+        file.dom.id = "";
+        file.dom.className = "";
+        file.dom.autocomplete = "nope";	// リロード時の添付ファイル復活を抑止
+
+        for (let elm = file.dom.parentElement; elm; elm = elm.parentElement) {
+            if (elm.tagName == "TD") {
+                let label = document.createElement("label");
+                let input = document.createElement("input");
+                input.name = "textonly";
+                input.value = "on";
+                input.type = "checkbox";
+                label.append(input, "画像無し");
+                elm.innerHTML = "";
+                elm.append(file.dom, "[", label, "]");
+                break;
+            }
+        }
+    }
+}
+
+/**
+ * ファイル入力ボタン配置
+ * @param {Object} file 添付ファイルの情報を格納したオブジェクト
+ */
+function makeInputButton(file) {
+    if (file.dom.id != "KOSHIAN_form_upfile") {
+        // ファイル入力全体
+        let file_input = document.createElement("div");
+        file_input.className = "KOSHIAN-form-file-input";
+        // ファイル入力表示
+        let file_input_view = document.createElement("div");
+        file_input_view.className = "KOSHIAN-form-file-input-view";
+        // ファイル入力欄
+        let file_input_container = document.createElement("div");
+        file_input_container.className = "KOSHIAN-form-file-input-container";
+        // ファイル入力ボタン（ダミー）
+        let file_input_button = document.createElement("div");
+        file_input_button.className = "KOSHIAN-form-file-input-button";
+        file_input_button.textContent = "参照...";
+        // ファイル入力名
+        let filename = document.createElement("div");
+        filename.id = "KOSHIAN_form_filename";
+        filename.className = "KOSHIAN-form-filename";
+        filename.textContent = INPUT_FILE_TEXT;
+        // ファイルプレビュー（ドロップエリア）
+        let preview = document.createElement("div");
+        preview.id = "KOSHIAN_form_preview";
+        preview.className = "KOSHIAN-form-droparea";
+        preview.textContent = droparea_text;
+        // ファイル情報
+        let file_info = document.createElement("div");
+        file_info.id = "KOSHIAN_form_file_info";
+        file_info.className = "KOSHIAN-form-file-info";
+        // 貼り付けボタン
+        let paste_button = document.createElement("div");
+        paste_button.id = "KOSHIAN_form_paste_button";
+        paste_button.className = "KOSHIAN-form-button";
+        paste_button.textContent = "[貼り付け]";
+        paste_button.title = "クリップボード内の画像を貼り付けます";
+        paste_button.onclick = () => {
+            pasteFromCripboard();
+        };
+        // クリアボタン
+        let clear_button = document.createElement("div");
+        clear_button.id = "KOSHIAN_form_clear_button";
+        clear_button.className = "KOSHIAN-form-button";
+        clear_button.textContent = "[クリア]";
+        clear_button.title = "添付ファイルをクリアします";
+        clear_button.onclick = () => {
+            clearFile(file);
+        };
+        // 貼り付けエリア（透明）
+        let pastearea = document.createElement("div");
+        pastearea.id = "KOSHIAN_form_pastearea";
+        pastearea.className = "KOSHIAN-form-pastearea";
+        pastearea.contentEditable = "true";
+
+        file_input_container.append(file_input_button, filename);
+        file_input_view.append(file_input_container, paste_button, clear_button);
+        file_input.append(file_input_view, preview, file_info);
+
+        let td = file.dom.parentElement;
+        td.innerHTML = "";
+        td.append(file_input, pastearea);
+
+        // ファイル入力本体（透明）
+        file.dom.id = "KOSHIAN_form_upfile";
+        file.dom.className = "KOSHIAN-form-upfile";
+        file.dom.autocomplete = "nope";	// リロード時の添付ファイル復活を抑止
+        file_input.append(file.dom);
+
+    } else {
+        // ファイル入力が配置済みならプレビューをクリアしてクリックイベントだけ再定義
+        clearPreview();
+        let paste_button = document.getElementById("KOSHIAN_form_paste_button");
+        paste_button.onclick = () => {
+            pasteFromCripboard();
+        };
+
+        let clear_button = document.getElementById("KOSHIAN_form_clear_button");
+        clear_button.onclick = () => {
+            clearFile(file);
+        };
+    }
+}
+
+/**
+ * クリップボード貼り付け
+ */
+function pasteFromCripboard() {
+    let pastearea = document.getElementById("KOSHIAN_form_pastearea");
+    pastearea.focus();
+    document.execCommand("paste");
+}
+
+/**
+ * 添付ファイルクリア
+ * @param {Object} file 添付ファイルの情報を格納したオブジェクト
+ */
+function clearFile(file) {
+    file.dom.value = "";
+    file.buffer = null;
+    file.obj = null;
+    file.name = null;
+    file.size = null;
+    file.type = null;
+    clearPreview();
+}
+
+/**
+ * プレビュークリア
+ */
+function clearPreview() {
+    let filename = document.getElementById("KOSHIAN_form_filename");
+    if (filename) filename.textContent = INPUT_FILE_TEXT;
+    // プレビュー初期化
+    let preview = document.getElementById("KOSHIAN_form_preview");
+    if (!preview) return;
+    let droparea = document.createElement("div");
+    droparea.id = "KOSHIAN_form_preview";
+    droparea.className = "KOSHIAN-form-droparea";
+    droparea.textContent = droparea_text;
+    preview.parentElement.replaceChild(droparea, preview);
+    let file_info = document.getElementById("KOSHIAN_form_file_info");
+    if (file_info) file_info.innerHTML = "";
+}
+
+/**
+ * プレビュー表示
+ * @param {Object} file 添付ファイルの情報を格納したオブジェクト
+ */
+function previewFile(file) {
+    document.getElementById("KOSHIAN_form_filename").textContent = file.name;
+    if (preview_max_size == 0) return;
+
+    let fileType = file.type.split("/");
+    let preview, img_width, img_height;
+    if (fileType[0] == "image") {
+        preview = document.createElement("img");
+        preview.id = "KOSHIAN_form_preview";
+        preview.className = "KOSHIAN-form-preview";
+    } else if (fileType[1] == "webm" || fileType[1] == "mp4") {
+        preview = document.createElement("video");
+        preview.id = "KOSHIAN_form_preview";
+        preview.className = "KOSHIAN-form-preview";
+        preview.muted = true;
+        preview.autoplay = video_autoplay;
+        preview.loop = video_loop;
+    // 画像とWebM･mp4以外は処理を中止
+    } else {
+        return;
+    }
+
+    let droparea = document.getElementById("KOSHIAN_form_preview");
+    droparea.parentElement.replaceChild(preview, droparea);
+
+    // WebM･mp4の幅と高さ取得
+    if (fileType[0] == "video") {
+        // メタデータ読み込み完了
+        preview.addEventListener("loadedmetadata", function (){
+            img_width = preview.videoWidth;
+            img_height = preview.videoHeight;
+            dispFileInfo();
+        });
+    }
+
+    // プレビュー表示
+    let reader = new FileReader();
+    reader.onload = () => {
+        preview.src = reader.result;
+    };
+    reader.readAsDataURL(file.obj);
+
+    // 画像の幅と高さ取得
+    if (fileType[0] == "image") {
+        let image = new Image();
+        image.onload = function() {
+            img_width = image.naturalWidth;
+            img_height = image.naturalHeight;
+            dispFileInfo();
+        };
+        image.src = URL.createObjectURL(file.obj);
+    }
+
+    /**
+     * ファイル情報表示
+     */
+    function dispFileInfo() {
+        let file_info = document.getElementById("KOSHIAN_form_file_info");
+        file_info.innerHTML = "";
+
+        let img_size = document.createElement("span");
+        img_size.textContent = `${img_width}×${img_height}／`;
+    
+        let file_size_sep = ("" + file.size).replace(/(\d)(?=(\d\d\d)+$)/g, "$1,");
+        let file_size = document.createElement("span");
+        file_size.textContent = `${file_size_sep}byte／`;
+
+        let file_type = document.createElement("span");
+        file_type.textContent = `${fileType[1]}`;
+
+        file_info.append(img_size, file_size, file_type);
+    }
+}
+
+/**
+ * dataURI文字列からバッファに変換
+ * @param {string} data_uri dataURI文字列
+ * @return {ArrayBuffer} 変換したバッファ
+ */
+function convertDataURI2Buffer(data_uri) {
+    // base64部をバイナリデータの文字列にデコード
+    let base64 = data_uri.split(',')[1];
+    if (!base64) return;
+    let byte_string = atob(base64);
+
+    // Uint8のビューを作成してデコードした文字列を格納し、そのバッファを返す
+    let uint8_buffer = new Uint8Array(byte_string.length);
+    for (let i = 0; i < byte_string.length; i++) {
+        uint8_buffer[i] = byte_string.charCodeAt(i);  // Unicode値で格納
+    }
+
+    return uint8_buffer.buffer;
 }
 
 function main() {
@@ -384,21 +673,18 @@ function main() {
         form.submit();
     };
 
-    form.file = {
-        dom    : form.dom.querySelector('input[name="upfile"]'),
-        reader : null,
-        buffer : null,
-        name : null,
-        type : null
-    };
 
+    form.file.dom = form.dom.querySelector('input[name="upfile"]');
     if (form.file.dom) {
         form.file.reader = new FileReader();
 
         form.file.reader.addEventListener("load", () => {
             form.file.buffer = form.file.reader.result;
-            form.file.name = form.file.dom.files[0].name;
-            form.file.type = form.file.dom.files[0].type;
+            form.file.obj = form.file.dom.files[0];
+            form.file.name = form.file.obj.name;
+            form.file.size = form.file.obj.size;
+            form.file.type = form.file.obj.type;
+            previewFile(form.file);
         });
 
         // ページ読み込み時にファイルが既にあれば読み込む
@@ -413,6 +699,65 @@ function main() {
 
             form.file.reader.readAsArrayBuffer(form.file.dom.files[0]);
         });
+
+        if (expand_file_input) {
+            makeInputButton(form.file);
+
+            let pastearea = document.getElementById("KOSHIAN_form_pastearea");
+            if (pastearea) {
+                let timer = null;
+                pastearea.addEventListener("input", function() {
+                    // pasteイベントのタイマーをクリア
+                    if (timer) {
+                        clearTimeout(timer);
+                        timer = null;
+                    }
+                    // 貼り付けた内容にimgタグがあるか探す
+                    let pasted_image = this.getElementsByTagName("img")[0];
+                    if (pasted_image) {
+                        console.log("KOSHIAN_form/res.js - pasted_image:");
+                        console.dir(pasted_image);
+                        let data_uri = pasted_image.src;
+                        let file_type = data_uri.match(/data:(image\/(.*));base64/);
+                        if (file_type) {
+                            let buffer = convertDataURI2Buffer(data_uri);
+                            if (buffer) {
+                                form.file.dom.value = "";
+                                form.file.buffer = buffer;
+                                form.file.name = `clipboard_image.${file_type[2]}`;
+                                form.file.type = file_type[1];
+                                form.file.obj = new File([buffer], form.file.name, { type: form.file.type } );
+                                form.file.size = form.file.obj.size;
+                                previewFile(form.file);
+                            } else {
+                                //
+                                //console.error("KOSHIAN_form/res.js - dataURI abnormal:" + data_uri);    // eslint-disable-line no-console
+                            }
+                        } else {
+                            //
+                            //console.error("KOSHIAN_form/res.js - dataURI abnormal:" + data_uri);    // eslint-disable-line no-console
+                        }
+                    } else {
+                        //
+                        //console.log("KOSHIAN_form/res.js - No pasted image:");
+                        //console.dir(this);
+                    }
+                    this.innerHTML = "";
+                    this.blur();
+                });
+
+                pastearea.addEventListener("paste", function() {
+                    timer = setTimeout(() => {
+                        // クリップボードが画像ファイル以外（inputイベントが発生しない）
+                        this.innerHTML = "";
+                        this.blur();
+                        if (popup_file_dialog) form.file.dom.click();
+                    }, 200);
+                });
+            }
+        } else {
+            initInputButton(form.file);
+        }
     }
 }
 
@@ -424,7 +769,26 @@ function onError(error) {
 }
 
 function onSettingGot(result) {
-    auto_scroll = safeGetValue(result.auto_scroll, true);
+    auto_scroll = safeGetValue(result.auto_scroll, DEFAULT_AUTO_SCROLL);
+    expand_file_input = safeGetValue(result.expand_file_input, DEFAULT_EXPAND_FILE_INPUT);
+    preview_max_size = safeGetValue(result.preview_max_size, DEFAULT_PREVIEW_MAX_SIZE);
+    droparea_height = safeGetValue(result.droparea_height, DEFAULT_DROPAREA_HEIGHT);
+    video_autoplay = safeGetValue(result.video_autoplay, DEFAULT_VIDEO_AUTOPLAY);
+    video_loop = safeGetValue(result.video_loop, DEFAULT_VIDEO_LOOP);
+    popup_file_dialog = safeGetValue(result.popup_file_dialog, DEFAULT_POPUP_FILE_DIALOG);
+
+    droparea_text = DEFAULT_DROPAREA_TEXT;
+    if (droparea_height < 12) {
+        droparea_text = "";
+    }
+    let droparea_border = DEFAULT_DROPAREA_BORDER;
+    if (droparea_height == 0) {
+        droparea_border = "";
+    }
+
+    document.documentElement.style.setProperty("--preview-max-size", preview_max_size + "px");
+    document.documentElement.style.setProperty("--droparea-height", droparea_height + "px");
+    document.documentElement.style.setProperty("--droparea-border", droparea_border);
 
     main();
 }
@@ -435,6 +799,30 @@ function onSettingChanged(changes, areaName) {
     }
 
     auto_scroll = safeGetValue(changes.auto_scroll.newValue, true);
+    expand_file_input = safeGetValue(changes.expand_file_input.newValue, DEFAULT_EXPAND_FILE_INPUT);
+    preview_max_size = safeGetValue(changes.preview_max_size.newValue, DEFAULT_PREVIEW_MAX_SIZE);
+    droparea_height = safeGetValue(changes.droparea_height.newValue, DEFAULT_DROPAREA_HEIGHT);
+    video_autoplay = safeGetValue(changes.video_autoplay.newValue, DEFAULT_VIDEO_AUTOPLAY);
+    video_loop = safeGetValue(changes.video_loop.newValue, DEFAULT_VIDEO_LOOP);
+    popup_file_dialog = safeGetValue(changes.popup_file_dialog.newValue, DEFAULT_POPUP_FILE_DIALOG);
+
+    droparea_text = DEFAULT_DROPAREA_TEXT;
+    if (droparea_height < 12) {
+        droparea_text = "";
+    }
+    let droparea_border = DEFAULT_DROPAREA_BORDER;
+    if (droparea_height == 0) {
+        droparea_border = "";
+    }
+
+    document.documentElement.style.setProperty("--preview-max-size", preview_max_size + "px");
+    document.documentElement.style.setProperty("--droparea-height", droparea_height + "px");
+    document.documentElement.style.setProperty("--droparea-border", droparea_border);
+
+    let droparea = document.getElementById("KOSHIAN_form_preview");
+    if (droparea && droparea.className == "KOSHIAN-form-droparea") {
+        droparea.textContent = droparea_text;
+    }
 }
 
 browser.storage.local.get().then(onSettingGot, onError);
