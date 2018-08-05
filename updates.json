@@ -2,7 +2,7 @@
   "addons": {
     "{1BE13B04-2E5B-11E8-90A5-384B8462A347}": {
       "updates": [
-        { "version": "0.2.1", "update_link": "https://github.com/akoya-tomo/koshian_form_futaba_kai/releases/download/v0.2.1/koshian_form_futaba_kai-0.2.1-an+fx.xpi" }
+        { "version": "1.0.0", "update_link": "https://github.com/akoya-tomo/koshian_form_futaba_kai/releases/download/v1.0.0/koshian_form_futaba_kai-1.0.0-an+fx.xpi" }
       ]
     }
   }
