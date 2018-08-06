@@ -33,10 +33,11 @@
   （[futaba form image previewer](https://greasyfork.org/ja/scripts/36659-futaba-form-image-previewer/)にも対応しています）  
 
 ## インストール
-### **● 最新バージョン**(v1.0.0)
+### **● 最新バージョン**(v1.0.1)
 **GitHub**  
-[![インストールボタン](images/install_button.png "クリックでアドオンをインストール")](https://github.com/akoya-tomo/koshian_form_futaba_kai/releases/download/v1.0.0/koshian_form_futaba_kai-1.0.0-an+fx.xpi)  
+[![インストールボタン](images/install_button.png "クリックでアドオンをインストール")](https://github.com/akoya-tomo/koshian_form_futaba_kai/releases/download/v1.0.1/koshian_form_futaba_kai-1.0.1-an+fx.xpi)  
 ※このアドオンはオリジナル版同様に実験的アドオンになります。不具合発生時は下の安定バージョンをご利用ください。  
+（v1.0.0から「クリップボードからのデータ取得」の権限が追加で要求されます）  
 
 ※「接続エラーのため、アドオンをダウンロードできませんでした。」と表示されてインストール出来ない時はインストールボタンを右クリックしてxpiファイルをダウンロードし、メニューのツール→アドオン（またはCtrl+Shift+A）で表示されたアドオンマネージャーのページにxpiファイルをドラッグ＆ドロップして下さい。  
 
@@ -63,6 +64,8 @@
 * このアドオンは文字コード変換に[encoding.js](https://github.com/polygonplanet/encoding.js)を使用しています。  
 
 ## 更新履歴
+* v1.0.1 2018-08-06
+  - 「添付ファイル入力機能を拡張する」が無効でもfutaba form image previewerが動作しないことがある不具合を修正
 * v1.0.0 2018-08-05
   - 添付ファイルの貼り付けボタンとクリアボタンを追加
   - 添付ファイルのプレビュー機能を追加
