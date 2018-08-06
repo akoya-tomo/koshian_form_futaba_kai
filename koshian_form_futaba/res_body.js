@@ -465,6 +465,7 @@ function makeSageButton(form) {
  */
 function initInputButton(file) {
     if (file.dom.id) {
+        if (document.getElementById("ffip_input_file")) return;
         file.dom.id = "";
         file.dom.className = "";
         file.dom.autocomplete = "nope";	// リロード時の添付ファイル復活を抑止
