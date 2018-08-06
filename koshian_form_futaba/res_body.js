@@ -526,7 +526,7 @@ function makeInputButton(file) {
         paste_button.textContent = "[貼り付け]";
         paste_button.title = "クリップボード内の画像を貼り付けます";
         paste_button.onclick = () => {
-            pasteFromCripboard();
+            pasteFromClipboard();
         };
         // クリアボタン
         let clear_button = document.createElement("div");
@@ -562,7 +562,7 @@ function makeInputButton(file) {
         clearPreview();
         let paste_button = document.getElementById("KOSHIAN_form_paste_button");
         paste_button.onclick = () => {
-            pasteFromCripboard();
+            pasteFromClipboard();
         };
 
         let clear_button = document.getElementById("KOSHIAN_form_clear_button");
@@ -575,10 +575,12 @@ function makeInputButton(file) {
 /**
  * クリップボード貼り付け
  */
-function pasteFromCripboard() {
+function pasteFromClipboard() {
     let pastearea = document.getElementById("KOSHIAN_form_pastearea");
-    pastearea.focus();
-    document.execCommand("paste");
+    if (pastearea) {
+        pastearea.focus();
+        document.execCommand("paste");
+    }
 }
 
 /**
@@ -618,7 +620,8 @@ function clearPreview() {
  * @param {Object} file 添付ファイルの情報を格納したオブジェクト
  */
 function previewFile(file) {
-    document.getElementById("KOSHIAN_form_filename").textContent = file.name;
+    let filename = document.getElementById("KOSHIAN_form_filename");
+    if (filename) filename.textContent = file.name;
     if (preview_max_size == 0) return;
 
     let fileType = file.type.split("/");
@@ -675,6 +678,7 @@ function previewFile(file) {
      */
     function dispFileInfo() {
         let file_info = document.getElementById("KOSHIAN_form_file_info");
+        if (!file_info) return;
         file_info.innerHTML = "";
 
         let img_size = document.createElement("span");
@@ -779,8 +783,8 @@ function main() {
                     // 貼り付けた内容にimgタグがあるか探す
                     let pasted_image = this.getElementsByTagName("img")[0];
                     if (pasted_image) {
-                        console.log("KOSHIAN_form/res.js - pasted_image:");
-                        console.dir(pasted_image);
+                        //console.log("KOSHIAN_form/res.js - pasted_image:");
+                        //console.dir(pasted_image);
                         let data_uri = pasted_image.src;
                         let file_type = data_uri.match(/data:(image\/(.*));base64/);
                         if (file_type) {
@@ -794,12 +798,10 @@ function main() {
                                 form.file.size = form.file.obj.size;
                                 previewFile(form.file);
                             } else {
-                                //
-                                //console.error("KOSHIAN_form/res.js - dataURI abnormal:" + data_uri);    // eslint-disable-line no-console
+                                console.error("KOSHIAN_form/res.js - dataURI abnormal:" + data_uri);    // eslint-disable-line no-console
                             }
                         } else {
-                            //
-                            //console.error("KOSHIAN_form/res.js - dataURI abnormal:" + data_uri);    // eslint-disable-line no-console
+                            console.error("KOSHIAN_form/res.js - dataURI abnormal:" + data_uri);    // eslint-disable-line no-console
                         }
                     } else {
                         //
