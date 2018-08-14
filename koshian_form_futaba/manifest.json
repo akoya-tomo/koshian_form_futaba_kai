@@ -16,6 +16,7 @@
             "js": [
                 "encoding.min.js",
                 "const.js",
+                "util.js",
                 "res.js"
             ],
             "css": [
