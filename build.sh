@@ -11,6 +11,4 @@ addon_ver=$(jq ".version" ${TARGET_DIR}/manifest.json)
 filename="${OUTPUT_DIR}/${addon_name}-${addon_ver:1:-1}.zip"
 
 cd ${TARGET_DIR}
-cat res_body.js >| res.js
-
-zip -q -r -9 ${filename} * -x "*.bak" "res_*.js" ".eslint*"
+zip -q -r -9 ${filename} * -x "*.bak" ".eslint*"
