@@ -7,6 +7,7 @@ const DEFAULT_DROPAREA_HEIGHT = 0;
 const DEFAULT_VIDEO_AUTOPLAY = true;
 const DEFAULT_VIDEO_LOOP = true;
 const DEFAULT_POPUP_FILE_DIALOG = false;
+const DEFAULT_OPEN_NEW_THREAD = false;
 
 function setDisable() {
   if (document.getElementById("expand_file_input").checked) {
@@ -39,7 +40,8 @@ function saveOptions(e) {
     droparea_height: document.getElementById("droparea_height").value,
     video_autoplay: document.getElementById("video_autoplay").checked,
     video_loop: document.getElementById("video_loop").checked,
-    popup_file_dialog: document.getElementById("popup_file_dialog").checked
+    popup_file_dialog: document.getElementById("popup_file_dialog").checked,
+    open_new_thread: document.getElementById("open_new_thread").checked
   });
 }
 
@@ -53,6 +55,7 @@ function setCurrentChoice(result) {
   document.getElementById("video_autoplay").checked = safeGetValue(result.video_autoplay, DEFAULT_VIDEO_AUTOPLAY);
   document.getElementById("video_loop").checked = safeGetValue(result.video_loop, DEFAULT_VIDEO_LOOP);
   document.getElementById("popup_file_dialog").checked = safeGetValue(result.popup_file_dialog, DEFAULT_POPUP_FILE_DIALOG);
+  document.getElementById("open_new_thread").checked = safeGetValue(result.open_new_thread, DEFAULT_OPEN_NEW_THREAD);
   document.getElementById("submit_button").addEventListener("click", saveOptions);
 
   setDisable();

@@ -22,6 +22,20 @@
             "css": [
                 "style.css"
             ]
+        },
+        {
+            "matches": [
+                "*://*.2chan.net/*/futaba.htm"
+            ],
+            "js": [
+                "encoding.min.js",
+                "const.js",
+                "util.js",
+                "board.js"
+            ],
+            "css": [
+                "style.css"
+            ]
         }
     ],
     "options_ui":{
