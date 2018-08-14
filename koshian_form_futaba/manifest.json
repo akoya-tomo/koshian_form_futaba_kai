@@ -14,6 +14,7 @@
                 "*://*.2chan.net/*/res/*"
             ],
             "js": [
+                "encoding.min.js",
                 "res.js"
             ],
             "css": [
