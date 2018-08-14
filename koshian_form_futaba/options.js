@@ -9,6 +9,8 @@ const DEFAULT_VIDEO_LOOP = true;
 const DEFAULT_POPUP_FILE_DIALOG = false;
 const DEFAULT_OPEN_NEW_THREAD = false;
 
+/* eslint indent: ["warn", 2] */
+
 function setDisable() {
   if (document.getElementById("expand_file_input").checked) {
     document.getElementById("preview_max_size").disabled = false;
