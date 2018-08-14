@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "KOSHIAN 返信フォーム拡張 改",
-    "version": "1.0.1",
+    "version": "1.1.0",
     "description": "返信した後ページをリロードしないようにします",
     "icons": {
         "48": "icons/icon-48.png"
@@ -14,10 +14,27 @@
                 "*://*.2chan.net/*/res/*"
             ],
             "js": [
+                "encoding.min.js",
+                "const.js",
+                "util.js",
                 "res.js"
             ],
             "css": [
-                "res.css"
+                "style.css"
+            ]
+        },
+        {
+            "matches": [
+                "*://*.2chan.net/*/futaba.htm"
+            ],
+            "js": [
+                "encoding.min.js",
+                "const.js",
+                "util.js",
+                "board.js"
+            ],
+            "css": [
+                "style.css"
             ]
         }
     ],
