@@ -1,7 +1,7 @@
 :root{
     --preview-max-size: 250px;
     --droparea-heigt: 0px;
-    --droparea-border: 2px #eeaa88 solid;
+    --droparea-border: none;
 }
 
 /* ファイル入力全体 */

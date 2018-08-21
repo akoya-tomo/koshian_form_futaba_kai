@@ -23,10 +23,12 @@
     - 添付ファイルのドロップエリアを追加（デフォルト：0px = 無効）  
       ファイル入力欄の下にファイルをドロップできるエリアを設定できます。  
       ![スクリーンショット](images/screenshot03.png "スクリーンショット")  
-  - \(New\) スレ立てのフォームに対応  
+  - スレ立てのフォームに対応  
     スレ立てのフォームに対応しました。  
     立てたスレを新しいタブに開くことができます。（デフォルト：無効）  
-    新しいタブを開くときにポップアップブロックが表示されたときは許可してください。
+    新しいタブを開くときにポップアップブロックが表示されたときは許可してください。  
+    \(New\) フォームの直下に「送信中……」などの状況やサーバーからのエラーメッセージを表示します。  
+    ![スクリーンショット](images/screenshot04.png "スクリーンショット")　![スクリーンショット](images/screenshot05.png "スクリーンショット")  
   - コメントの\[クリア\]ボタンとメール欄の\[sage\]ボタンを追加（デフォルト：有効）  
     コメントをクリアしたり、メール欄のsageを切り替えすることができます。  
   - 返信時に状況やエラーメッセージを表示  
@@ -37,23 +39,13 @@
   （[futaba form image previewer](https://greasyfork.org/ja/scripts/36659-futaba-form-image-previewer/)にも対応しています）  
 
 ## インストール
-### **● 最新バージョン**(v1.1.0)
+### **● 最新バージョン**(v1.2.0)
 **GitHub**  
-[![インストールボタン](images/install_button.png "クリックでアドオンをインストール")](https://github.com/akoya-tomo/koshian_form_futaba_kai/releases/download/v1.1.0/koshian_form_futaba_kai-1.1.0-an+fx.xpi)  
-※このアドオンはオリジナル版同様に実験的アドオンになります。スレ立てで不具合が発生する場合は下の一つ前のバージョンをご利用ください。  
+[![インストールボタン](images/install_button.png "クリックでアドオンをインストール")](https://github.com/akoya-tomo/koshian_form_futaba_kai/releases/download/v1.2.0/koshian_form_futaba_kai-1.2.0-an+fx.xpi)  
+※このアドオンはオリジナル版同様に実験的アドオンになります。最新バージョンで不具合が発生する場合は[Releasesページ](https://github.com/akoya-tomo/koshian_form_futaba_kai/releases)から古いバージョンのxpiファイルをインストールしてみてください。  
 ※v1.0.0から「クリップボードからのデータ取得」の権限が追加で要求されます。  
 
 ※「接続エラーのため、アドオンをダウンロードできませんでした。」と表示されてインストール出来ない時はインストールボタンを右クリックしてxpiファイルをダウンロードし、メニューのツール→アドオン（またはCtrl+Shift+A）で表示されたアドオンマネージャーのページにxpiファイルをドラッグ＆ドロップして下さい。  
-
-### **● 一つ前のバージョン**(v1.0.1)
-**GitHub**  
-[![インストールボタン](images/install_button.png "クリックでアドオンをインストール")](https://github.com/akoya-tomo/koshian_form_futaba_kai/releases/download/v1.0.1/koshian_form_futaba_kai-1.0.1-an+fx.xpi)  
-※このバージョンでも不具合が発生する場合は下の安定バージョンをご利用ください。  
-
-### **● 安定バージョン**(v0.1.0)
-**GitHub**  
-[![インストールボタン](images/install_button.png "クリックでアドオンをインストール")](https://github.com/akoya-tomo/koshian_form_futaba_kai/releases/download/v0.1.0/koshian_form_futaba_kai-0.1.0-an.fx.xpi)  
-※一つ前のバージョンでも不具合が発生する場合はこちらのバージョンをご利用ください。  
 
 ## 追加機能の補足  
 * 「添付ファイル入力機能を拡張する」を有効にする前に、必ず**futaba form image previewerを無効**にして、開いているレス送信モードのページを更新してください。両方有効だと正常に動作しません。  
@@ -78,6 +70,9 @@
 * このアドオンは文字コード変換に[encoding.js](https://github.com/polygonplanet/encoding.js)を使用しています。  
 
 ## 更新履歴
+* v1.2.0 2018-08-21
+  - スレ立てのフォームのメッセージ表示方法変更
+  - ドロップエリアを無効にしても枠が残る不具合を修正
 * v1.1.0 2018-08-14
   - スレ立てのフォームに対応
 * v1.0.1 2018-08-06
