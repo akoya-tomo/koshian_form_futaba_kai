@@ -419,7 +419,7 @@ function onSettingGot(result) {
     }
     let droparea_border = DEFAULT_DROPAREA_BORDER;
     if (droparea_height == 0) {
-        droparea_border = "";
+        droparea_border = "none";
     }
 
     document.documentElement.style.setProperty("--preview-max-size", preview_max_size + "px");
@@ -450,7 +450,7 @@ function onSettingChanged(changes, areaName) {
     }
     let droparea_border = DEFAULT_DROPAREA_BORDER;
     if (droparea_height == 0) {
-        droparea_border = "";
+        droparea_border = "none";
     }
 
     document.documentElement.style.setProperty("--preview-max-size", preview_max_size + "px");
