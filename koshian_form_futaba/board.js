@@ -27,8 +27,55 @@ let popup_file_dialog = DEFAULT_POPUP_FILE_DIALOG;
 let droparea_text = DEFAULT_DROPAREA_TEXT;
 let open_new_thread = DEFAULT_OPEN_NEW_THREAD;
 
+class Notify {
+    constructor() {
+        if (Notify.hasNotify()) {
+            this.notify = document.getElementById("KOSHIAN_NOTIFY");
+            this.text = (function (parent) {
+                for (let node = parent.firstChild; node; node = node.nextSibling) {
+                    if (node.nodeType == Node.TEXT_NODE) {
+                        return node;
+                    }
+                }
+
+                return parent.appendChild(document.createTextNode(""));
+            })(this.notify);
+
+        } else {
+            this.notify = document.createElement("td");
+            this.text = document.createTextNode("");
+            let table_footer = document.createElement("tfoot");
+            let table_row = document.createElement("tr");
+
+            this.notify.id = "KOSHIAN_NOTIFY";
+            this.notify.colSpan = 2;
+            this.notify.appendChild(this.text);
+            table_row.appendChild(this.notify);
+            table_footer.appendChild(table_row);
+            document.getElementById("ftbl").appendChild(table_footer);
+        }
+    }
+
+    setText(text) {
+        this.text.textContent = text;
+        this.notify.style.color = "";
+        this.notify.style.fontWeight = "";
+    }
+
+    setAlertText(text) {
+        this.text.textContent = text;
+        this.notify.style.color = "red";
+        this.notify.style.fontWeight = "bold";
+    }
+
+    static hasNotify() {
+        return document.getElementById("KOSHIAN_NOTIFY");
+    }
+}
+
 class Form {
     constructor() {
+        this.notify = new Notify();
         this.dom = null;
         this.textarea = null;
         this.loading = false;
@@ -55,7 +102,7 @@ class Form {
             if (this.file.reader.readyState === FileReader.LOADING) {
                 setTimeout(this.submit.bind(this), 10);
             } else {
-                //this.notify.setAlarmText("添付ファイルの読み込みに失敗しました。もう一度ファイルを選択し直してください");
+                this.notify.setAlertText("添付ファイルの読み込みに失敗しました。もう一度ファイルを選択し直してください");
             }
             return;
         }
@@ -96,6 +143,7 @@ class Form {
         );
 
         xhr.send(this.buffer);
+        this.notify.setText("送信中……");
     }
 
     setText(name, value) {
@@ -149,11 +197,11 @@ class Form {
                 }
                 break;
               default:  // eslint-disable-line indent
-                alert(`スレ立て結果取得失敗 CODE:${xhr.status}`);
+                this.notify.setAlertText(`スレ立て結果取得失敗 CODE:${xhr.status}`);
                 this.loading = false;
             }
         }catch(e){
-            alert("スレ立て結果取得失敗");
+            this.notify.setAlertText("スレ立て結果取得失敗");
             console.error("KOSHIAN_form/board.js - onResponseLoad error: " + e);  // eslint-disable-line no-console
             this.loading = false;
         }
@@ -174,11 +222,17 @@ class Form {
             console.error("KOSHIAN_form/board.js - onResponse error: " + res);  // eslint-disable-line no-console
             text = "スレ立て処理でエラー発生";
         }
-        alert(text);
+        this.notify.setAlertText(text);
         this.loading = false;
     }
 
     moveToNewThread(res) {
+        if (open_new_thread) {
+            this.notify.setText("送信完了。立てたスレを開きます……");
+        } else {
+            this.notify.setText("送信完了。立てたスレに移動します……");
+        }
+
         this.textarea.value = "";
         let clear_button = document.getElementById("KOSHIAN_form_clear_button") || document.getElementById("ffip_file_clear");
         if (clear_button) {
@@ -196,17 +250,22 @@ class Form {
             let url_match = /^https?:\/\/.+\.2chan\.net\/.+\/res\/(\d+)\.htm$/.test(new_thre);
             if (url_match) {
                 if (open_new_thread) {
-                    window.open(new_thre);
+                    let new_window = window.open(new_thre);
+                    if (new_window) {
+                        this.notify.setText("立てたスレを開きました");
+                    } else {
+                        this.notify.setAlertText("立てたスレを開けませんでした。ポップアップブロックされている場合は許可してください");
+                    }
                 } else {
                     location.href = new_thre;
                 }
             } else {
                 console.error("KOSHIAN_form/board.js - new thread address abnormal:" + new_thre);   // eslint-disable-line no-console
-                alert("立てたスレのアドレス取得失敗。スレ立ては成功");
+                this.notify.setAlertText("立てたスレのアドレス取得失敗。スレ立ては成功");
             }
         } else {
             console.error("KOSHIAN_form/board.js - response abnormal:" + res);   // eslint-disable-line no-console
-            alert("立てたスレに移動失敗。スレ立ては成功");
+            this.notify.setAlertText("立てたスレに移動失敗。スレ立ては成功");
         }
         this.loading = false;
     }
@@ -214,13 +273,13 @@ class Form {
     onError() {
         this.loading = false;
         this.buffer = null;
-        alert("通信失敗");
+        this.notify.setAlertText("通信失敗");
     }
 
     onTimeout() {
         this.loading = false;
         this.buffer = null;
-        alert("接続がタイムアウトしました");
+        this.notify.setAlertText("接続がタイムアウトしました");
     }
 
 }
