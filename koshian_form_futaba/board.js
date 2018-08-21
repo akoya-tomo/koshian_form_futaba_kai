@@ -226,12 +226,12 @@ class Form {
 }
 
 function main() {
-    let form = new Form();
-
     let ftbl = document.getElementById("ftbl");
     if (!ftbl) {
         return;
     }
+
+    let form = new Form();
 
     form.dom = ftbl.parentElement;
     if (!form.dom) {

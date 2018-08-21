@@ -64,7 +64,7 @@ class Notify {
         this.notify.style.fontWeight = "";
     }
 
-    setAlarmText(text) {
+    setAlertText(text) {
         this.text.textContent = text;
         this.notify.style.color = "red";
         this.notify.style.fontWeight = "bold";
@@ -116,7 +116,7 @@ class Form {
             if (this.file.reader.readyState === FileReader.LOADING) {
                 setTimeout(this.submit.bind(this), 10);
             } else {
-                this.notify.setAlarmText("添付ファイルの読み込みに失敗しました。もう一度ファイルを選択し直してください");
+                this.notify.setAlertText("添付ファイルの読み込みに失敗しました。もう一度ファイルを選択し直してください");
                 fixFormPosition();
             }
             return;
@@ -202,6 +202,7 @@ class Form {
     }
 
     onResponseLoad(xhr){
+        this.buffer = null;
         try{
             switch(xhr.status){
               case 200:  // eslint-disable-line indent
@@ -239,7 +240,7 @@ class Form {
             console.error("KOSHIAN_form/res.js - onResponse error: " + res);  // eslint-disable-line no-console
             text = "返信処理でエラーが発生しました";
         }
-        this.notify.setAlarmText(text);
+        this.notify.setAlertText(text);
         this.loading = false;
         fixFormPosition();
     }
@@ -263,14 +264,14 @@ class Form {
                 this.addNewResponses(xhr.responseXML);
                 break;
               case 404:  // eslint-disable-line indent
-                this.notify.setAlarmText("スレは落ちています CODE:404");
+                this.notify.setAlertText("スレは落ちています CODE:404");
                 document.dispatchEvent(new CustomEvent("KOSHIAN_reload_notfound"));
                 break;
               default:  // eslint-disable-line indent
-                this.notify.setAlarmText(`スレ更新失敗 CODE:${xhr.status} 返信は成功している可能性があります`);
+                this.notify.setAlertText(`スレ更新失敗 CODE:${xhr.status} 返信は成功している可能性があります`);
             }
         }catch(e){
-            this.notify.setAlarmText(`スレ更新失敗 CODE:${xhr.status} 返信は成功している可能性があります`);
+            this.notify.setAlertText(`スレ更新失敗 CODE:${xhr.status} 返信は成功している可能性があります`);
             console.error("KOSHIAN_form/res.js onBodyLoad error: " + e);  // eslint-disable-line no-console
         }
 
@@ -288,14 +289,14 @@ class Form {
         }
 
         if(!new_document){
-            this.notify.setAlarmText("スレ更新失敗。スレが空です。返信は成功している可能性があります");
+            this.notify.setAlertText("スレ更新失敗。スレが空です。返信は成功している可能性があります");
             return;
         }
 
         let thre = document.getElementsByClassName("thre")[0];
         let new_thre = new_document.getElementsByClassName("thre")[0];
         if(!thre || !new_thre){
-            this.notify.setAlarmText("スレ更新失敗。スレがありません。返信は成功している可能性があります");
+            this.notify.setAlertText("スレ更新失敗。スレがありません。返信は成功している可能性があります");
             return;
         }
 
@@ -331,13 +332,15 @@ class Form {
 
     onError() {
         this.loading = false;
-        this.notify.setAlarmText("通信失敗");
+        this.buffer = null;
+        this.notify.setAlertText("通信失敗");
         fixFormPosition();
     }
 
     onTimeout() {
         this.loading = false;
-        this.notify.setAlarmText("接続がタイムアウトしました");
+        this.buffer = null;
+        this.notify.setAlertText("接続がタイムアウトしました");
         fixFormPosition();
     }
 
@@ -363,12 +366,12 @@ function fixFormPosition() {
 }
 
 function main() {
-    let form = new Form();
-
     let ftbl = document.getElementById("ftbl");
     if (!ftbl) {
         return;
     }
+
+    let form = new Form();
 
     form.dom = ftbl.parentElement;
     if (!form.dom) {
