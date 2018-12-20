@@ -377,6 +377,7 @@ function main() {
     if (!form.dom) {
         return;
     }
+    form.dom.id = "koshian_fm";
 
     form.textarea = form.dom.getElementsByTagName("textarea")[0];
     if (!form.textarea) {
