@@ -137,7 +137,7 @@ class Form {
         // フォーム内の要素からマルチパートフォームデータ作成
         for (let elm of this.dom.elements) {
             if (elm.name) {
-                if (elm.tagName == "TEXTAREA" || elm.type == "text") {
+                if (elm.tagName == "TEXTAREA" || elm.type == "text" || elm.name == "chrenc") {
                     // テキスト
                     this.setText(elm.name, elm.value);
                 } else if (elm.type == "file") {
