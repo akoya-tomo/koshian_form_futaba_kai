@@ -39,9 +39,9 @@
   （[futaba form image previewer](https://greasyfork.org/ja/scripts/36659-futaba-form-image-previewer/)にも対応しています）  
 
 ## インストール
-### **● 最新バージョン**(v1.2.0)
+### **● 最新バージョン**(v1.2.1)
 **GitHub**  
-[![インストールボタン](images/install_button.png "クリックでアドオンをインストール")](https://github.com/akoya-tomo/koshian_form_futaba_kai/releases/download/v1.2.0/koshian_form_futaba_kai-1.2.0-an+fx.xpi)  
+[![インストールボタン](images/install_button.png "クリックでアドオンをインストール")](https://github.com/akoya-tomo/koshian_form_futaba_kai/releases/download/v1.2.1/koshian_form_futaba_kai-1.2.1-fx.xpi)  
 ※このアドオンはオリジナル版同様に実験的アドオンになります。最新バージョンで不具合が発生する場合は[Releasesページ](https://github.com/akoya-tomo/koshian_form_futaba_kai/releases)から古いバージョンのxpiファイルをインストールしてみてください。  
 ※v1.0.0から「クリップボードからのデータ取得」の権限が追加で要求されます。  
 
@@ -70,6 +70,8 @@
 * このアドオンは文字コード変換に[encoding.js](https://github.com/polygonplanet/encoding.js)を使用しています。  
 
 ## 更新履歴
+* v1.2.1 2018-12-20
+  - 返信フォームの新仕様による文字化けを修正
 * v1.2.0 2018-08-21
   - スレ立てのフォームのメッセージ表示方法変更
   - ドロップエリアを無効にしても枠が残る不具合を修正
