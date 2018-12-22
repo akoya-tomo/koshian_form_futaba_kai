@@ -144,8 +144,13 @@ class Form {
                     // ファイル
                     this.setFile(elm.name);
                 } else if (elm.type != "checkbox" || elm.checked) {
-                    // パラメータ
-                    this.setParam(elm.name, elm.value);
+                    if (isAscii(elm.value)) {
+                        // パラメータ
+                        this.setParam(elm.name, elm.value);
+                    } else {
+                        // テキスト
+                        this.setText(elm.name, elm.value);
+                    }
                 }
             }
         }
@@ -344,6 +349,15 @@ class Form {
         fixFormPosition();
     }
 
+}
+
+function isAscii(str) {
+    str = str == null ? "" : str;
+    if (str.match(/^[\x20-\x7e]*$/)) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 function fixFormPosition() {
