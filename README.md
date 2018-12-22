@@ -39,9 +39,9 @@
   （[futaba form image previewer](https://greasyfork.org/ja/scripts/36659-futaba-form-image-previewer/)にも対応しています）  
 
 ## インストール
-### **● 最新バージョン**(v1.2.2)
+### **● 最新バージョン**(v1.2.3)
 **GitHub**  
-[![インストールボタン](images/install_button.png "クリックでアドオンをインストール")](https://github.com/akoya-tomo/koshian_form_futaba_kai/releases/download/v1.2.2/koshian_form_futaba_kai-1.2.2-fx.xpi)  
+[![インストールボタン](images/install_button.png "クリックでアドオンをインストール")](https://github.com/akoya-tomo/koshian_form_futaba_kai/releases/download/v1.2.3/koshian_form_futaba_kai-1.2.3-fx.xpi)  
 ※このアドオンはオリジナル版同様に実験的アドオンになります。最新バージョンで不具合が発生する場合は[Releasesページ](https://github.com/akoya-tomo/koshian_form_futaba_kai/releases)から古いバージョンのxpiファイルをインストールしてみてください。  
 ※v1.0.0から「クリップボードからのデータ取得」の権限が追加で要求されます。  
 
@@ -70,6 +70,8 @@
 * このアドオンは文字コード変換に[encoding.js](https://github.com/polygonplanet/encoding.js)を使用しています。  
 
 ## 更新履歴
+* v1.2.3 2018-12-22
+  - 返信フォームのパラメータに非ASCII文字が含まれたときの処理を追加
 * v1.2.2 2018-12-20
   - 返信フォームの仕様変更による送信動作の不具合を修正
 * v1.2.1 2018-12-20
