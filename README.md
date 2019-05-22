@@ -27,8 +27,7 @@
     スレ立てのフォームに対応しました。  
     立てたスレを新しいタブに開くことができます。（デフォルト：無効）  
     新しいタブを開くときにポップアップブロックが表示されたときは許可してください。  
-    \(New\) フォームの直下に「送信中……」などの状況やサーバーからのエラーメッセージを表示します。  
-    ![スクリーンショット](images/screenshot04.png "スクリーンショット")　![スクリーンショット](images/screenshot05.png "スクリーンショット")  
+    ![スクリーンショット](images/screenshot04.png "スクリーンショット")  
   - コメントの\[クリア\]ボタンとメール欄の\[sage\]ボタンを追加（デフォルト：有効）  
     コメントをクリアしたり、メール欄のsageを切り替えすることができます。  
   - 返信時に状況やエラーメッセージを表示  
@@ -39,10 +38,12 @@
   （[futaba form image previewer](https://greasyfork.org/ja/scripts/36659-futaba-form-image-previewer/)にも対応しています）  
 
 ## インストール
-### **● 最新バージョン**(v1.2.3)
+### **● 最新バージョン**(v1.3.0)
 **GitHub**  
-[![インストールボタン](images/install_button.png "クリックでアドオンをインストール")](https://github.com/akoya-tomo/koshian_form_futaba_kai/releases/download/v1.2.3/koshian_form_futaba_kai-1.2.3-fx.xpi)  
+[![インストールボタン](images/install_button.png "クリックでアドオンをインストール")](https://github.com/akoya-tomo/koshian_form_futaba_kai/releases/download/v1.3.0/koshian_form_futaba_kai-1.3.0-fx.xpi)  
 ※このアドオンはオリジナル版同様に実験的アドオンになります。最新バージョンで不具合が発生する場合は[Releasesページ](https://github.com/akoya-tomo/koshian_form_futaba_kai/releases)から古いバージョンのxpiファイルをインストールしてみてください。  
+※![\(New\)](images/new.png "New") v1.3.0から「すべてのウェブサイトの保存されたデータへのアクセス」の権限が追加で要求されます。  
+　（Web上の画像から添付ファイルへの貼り付けに使用）  
 ※v1.0.0から「クリップボードからのデータ取得」の権限が追加で要求されます。  
 
 ※「接続エラーのため、アドオンをダウンロードできませんでした。」と表示されてインストール出来ない時はインストールボタンを右クリックしてxpiファイルをダウンロードし、メニューのツール→アドオン（またはCtrl+Shift+A）で表示されたアドオンマネージャーのページにxpiファイルをドラッグ＆ドロップして下さい。  
@@ -65,11 +66,15 @@
 * オリジナル版とは別アドオンなので設定は初期値に戻ります。  
   再度設定をお願い致します。  
 * フレーム表示では動作しません。  
+* ![\(New\)](images/new.png "New") Web上の画像から添付ファイルへの貼り付けは実験的な機能になります。  
+  貼り付けできないサイトや画像があればご連絡ください。  
 
 ## ライセンス
 * このアドオンは文字コード変換に[encoding.js](https://github.com/polygonplanet/encoding.js)を使用しています。  
 
 ## 更新履歴
+* v1.3.0 2019-05-22
+  - Web上の画像から添付ファイルへの貼り付けを実験的機能として追加
 * v1.2.3 2018-12-22
   - 返信フォームのパラメータに非ASCII文字が含まれたときの処理を追加
 * v1.2.2 2018-12-20
