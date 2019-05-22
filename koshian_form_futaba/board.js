@@ -353,23 +353,26 @@ function main() {
                     if (pasted_image) {
                         //console.log("KOSHIAN_form/board.js - pasted_image:");
                         //console.dir(pasted_image);
-                        let data_uri = pasted_image.src;
-                        let file_type = data_uri.match(/data:(image\/(.*));base64/);
-                        if (file_type) {
-                            let buffer = convertDataURI2Buffer(data_uri);
-                            if (buffer) {
-                                form.file.dom.value = "";
-                                form.file.buffer = buffer;
-                                form.file.name = `clipboard_image.${file_type[2]}`;
-                                form.file.type = file_type[1];
-                                form.file.obj = new File([buffer], form.file.name, { type: form.file.type } );
-                                form.file.size = form.file.obj.size;
-                                previewFile(form.file);
-                            } else {
-                                console.error("KOSHIAN_form/board.js - dataURI abnormal:" + data_uri);    // eslint-disable-line no-console
-                            }
+                        let data_uri = pasted_image.src.match(/^data:(image\/([^;]+));base64.+$/);
+                        if (data_uri) {
+                            setDataURI(data_uri);
                         } else {
-                            console.error("KOSHIAN_form/board.js - dataURI abnormal:" + data_uri);    // eslint-disable-line no-console
+                            try {
+                                fetch(pasted_image.src).then(function(response) {
+                                    return response.blob();
+                                }).then(function(blob) {
+                                    //console.log("KOSHIAN_form/board.js - blob.type: " + blob.type);
+                                    if (blob.type.match(/^image\//)) {
+                                        setBlob(blob);
+                                    } else {
+                                        console.log("KOSHIAN_form/board.js - blob type is not image");  // eslint-disable-line no-console
+                                    }
+                                });
+                            } catch(e) {
+                                console.error("KOSHIAN_form/board.js - fetch error: src=" + pasted_image.src + ", error=" );	// eslint-disable-line no-console
+                                console.dir(e); // eslint-disable-line no-console
+                                return;
+                            }
                         }
                     } else {
                         //
@@ -378,6 +381,45 @@ function main() {
                     }
                     this.innerHTML = "";
                     this.blur();
+
+                    function setDataURI(data_uri) {
+                        let file_ext = data_uri[2];
+                        let file_type = data_uri[1];
+                        if (data_uri[0] && file_ext && file_type) {
+                            let buffer = convertDataURI2Buffer(data_uri[0]);
+                            if (buffer) {
+                                form.file.dom.value = "";
+                                form.file.buffer = buffer;
+                                form.file.name = `clipboard_image.${file_ext}`;
+                                form.file.type = file_type;
+                                form.file.obj = new File([buffer], form.file.name, { type: form.file.type } );
+                                form.file.size = form.file.obj.size;
+                                previewFile(form.file);
+                            } else {
+                                console.error("KOSHIAN_form/board.js - dataURI abnormal: " + data_uri[0]);    // eslint-disable-line no-console
+                            }
+                        } else {
+                            console.error("KOSHIAN_form/board.js - dataURI abnormal: ");    // eslint-disable-line no-console
+                            console.dir(data_uri);  // eslint-disable-line no-console
+                        }
+                    }
+
+                    function setBlob(blob) {
+                        let file_reader = new FileReader();
+                        file_reader.addEventListener("load", () => {
+                            let buffer = file_reader.result;
+                            let file_ext = blob.type.split("/")[1];
+                            let file_type = blob.type;
+                            form.file.dom.value = "";
+                            form.file.buffer = buffer;
+                            form.file.name = `clipboard_image.${file_ext}`;
+                            form.file.type = file_type;
+                            form.file.obj = new File([blob], form.file.name);
+                            form.file.size = form.file.obj.size;
+                            previewFile(form.file);
+                        });
+                        file_reader.readAsArrayBuffer(blob);
+                    }
                 });
 
                 pastearea.addEventListener("paste", function() {

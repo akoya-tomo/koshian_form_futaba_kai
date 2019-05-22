@@ -42,6 +42,7 @@
         "page":"options.html"
     },
     "permissions":[
+        "<all_urls>",
         "storage", "clipboardRead"
     ],
     "applications": {
