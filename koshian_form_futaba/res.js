@@ -290,12 +290,28 @@ class Form {
     }
 
     addNewResponses(new_document){
+        // テキストクリア
         this.textarea.value = "";
+        // 添付ファイルクリア
         let clear_button = document.getElementById("KOSHIAN_form_clear_button") || document.getElementById("ffip_file_clear");
         if (clear_button) {
             clear_button.click();
         } else if (this.file.dom) {
             clearFile(this.file);
+        }
+        // 手書きフォームデータクリア
+        let baseform = document.getElementById("baseform");
+        if (baseform) {
+            // base4ajax.jsの動作に合わせる
+            baseform.value = "";
+        }
+        // 手書きを閉じて文字入力に戻す
+        let oebtnjm = document.getElementById("oebtnjm");   // 手書きjsモードの「文字入力」ボタン
+        let oebtnfm = document.getElementById("oebtnfm");   // 手書き(flash)モードの「文字入力」ボタン
+        if (oebtnjm && oebtnjm.style.display !== "none") {
+            oebtnjm.click();
+        } else if (oebtnfm && oebtnfm.style.display !== "none") {
+            oebtnfm.click();
         }
 
         if(!new_document){
