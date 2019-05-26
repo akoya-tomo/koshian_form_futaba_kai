@@ -1,6 +1,7 @@
 const DEFAULT_AUTO_SCROLL = true;
 const DEFAULT_USE_COMMENT_CLEAR = true;
 const DEFAULT_USE_SAGE = true;
+const DEFAULT_USE_IMAGE_RESIZE = false;
 const DEFAULT_EXPAND_FILE_INPUT = false;
 const DEFAULT_PREVIEW_MAX_SIZE = 250;
 const DEFAULT_DROPAREA_HEIGHT = 0;
@@ -37,6 +38,7 @@ function saveOptions(e) {
     auto_scroll: document.getElementById("auto_scroll").checked,
     use_comment_clear: document.getElementById("use_comment_clear").checked,
     use_sage: document.getElementById("use_sage").checked,
+    use_image_resize: document.getElementById("use_image_resize").checked,
     expand_file_input: document.getElementById("expand_file_input").checked,
     preview_max_size: document.getElementById("preview_max_size").value,
     droparea_height: document.getElementById("droparea_height").value,
@@ -51,6 +53,7 @@ function setCurrentChoice(result) {
   document.getElementById("auto_scroll").checked = safeGetValue(result.auto_scroll, DEFAULT_AUTO_SCROLL);
   document.getElementById("use_comment_clear").checked = safeGetValue(result.use_comment_clear, DEFAULT_USE_COMMENT_CLEAR);
   document.getElementById("use_sage").checked = safeGetValue(result.use_sage, DEFAULT_USE_SAGE);
+  document.getElementById("use_image_resize").checked = safeGetValue(result.use_image_resize, DEFAULT_USE_IMAGE_RESIZE);
   document.getElementById("expand_file_input").checked = safeGetValue(result.expand_file_input, DEFAULT_EXPAND_FILE_INPUT);
   document.getElementById("preview_max_size").value = safeGetValue(result.preview_max_size, DEFAULT_PREVIEW_MAX_SIZE);
   document.getElementById("droparea_height").value = safeGetValue(result.droparea_height, DEFAULT_DROPAREA_HEIGHT);

@@ -1,7 +1,7 @@
 /* globals XMLHttpRequest */
 /* globals SCRIPT_NAME */   //eslint-disable-line no-unused-vars
-/* globals DEFAULT_TIME_OUT, DEFAULT_USE_COMMENT_CLEAR, DEFAULT_USE_SAGE, DEFAULT_EXPAND_FILE_INPUT, DEFAULT_PREVIEW_MAX_SIZE, DEFAULT_DROPAREA_HEIGHT */
-/* globals DEFAULT_VIDEO_AUTOPLAY, DEFAULT_VIDEO_LOOP, DEFAULT_POPUP_FILE_DIALOG, DEFAULT_DROPAREA_BORDER, DEFAULT_DROPAREA_TEXT, DEFAULT_OPEN_NEW_THREAD */
+/* globals DEFAULT_TIME_OUT, DEFAULT_USE_COMMENT_CLEAR, DEFAULT_USE_SAGE, DEFAULT_USE_IMAGE_RESIZE, DEFAULT_EXPAND_FILE_INPUT, DEFAULT_PREVIEW_MAX_SIZE, DEFAULT_DROPAREA_HEIGHT */
+/* globals DEFAULT_VIDEO_AUTOPLAY, DEFAULT_VIDEO_LOOP, DEFAULT_POPUP_FILE_DIALOG, DEFAULT_DROPAREA_BORDER, DEFAULT_DROPAREA_TEXT, DEFAULT_OPEN_NEW_THREAD, DEFAULT_MAX_FILE_SIZE */
 /* globals use_comment_clear, usa_sage, expand_file_input, preview_max_size, droparea_height, video_autolay, video_loop, popup_file_dialog, droparea_text */    //eslint-disable-line no-unused-vars
 /* globals 
     createBoundary,
@@ -17,6 +17,7 @@ const SCRIPT_NAME = "KOSHIAN_form/board.js";
 let time_out = DEFAULT_TIME_OUT;
 let use_comment_clear = DEFAULT_USE_COMMENT_CLEAR;      //eslint-disable-line no-unused-vars
 let use_sage = DEFAULT_USE_SAGE;        //eslint-disable-line no-unused-vars
+let use_image_resize = DEFAULT_USE_IMAGE_RESIZE;  //eslint-disable-line no-unused-vars
 let expand_file_input = DEFAULT_EXPAND_FILE_INPUT;  //eslint-disable-line no-unused-vars
 let preview_max_size = DEFAULT_PREVIEW_MAX_SIZE;
 let droparea_height = DEFAULT_DROPAREA_HEIGHT;
@@ -87,7 +88,9 @@ class Form {
             buffer : null,
             name : null,
             size : null,
-            type : null
+            type : null,
+            loading : false,
+            max_size : DEFAULT_MAX_FILE_SIZE
         };
     }
 
@@ -159,7 +162,7 @@ class Form {
     }
 
     setFile(name) {
-        let filename = this.file.name ? "filename" : "";
+        let filename = this.file.name ? `file.${this.file.type.split("/")[1]}` : "";    // UTF8固定なのでファイル名はASCIIのみ
         let type = this.file.type ? this.file.type : "application/octet-stream";
         let buffer = convertUnicode2Buffer("UTF8",
             "--" + this.boundary + "\r\n" +
@@ -322,6 +325,7 @@ function onError(error) {
 function onSettingGot(result) {
     use_comment_clear = safeGetValue(result.use_comment_clear, DEFAULT_USE_COMMENT_CLEAR);
     use_sage = safeGetValue(result.use_sage, DEFAULT_USE_SAGE);
+    use_image_resize = safeGetValue(result.use_image_resize, DEFAULT_USE_IMAGE_RESIZE);
     expand_file_input = safeGetValue(result.expand_file_input, DEFAULT_EXPAND_FILE_INPUT);
     preview_max_size = safeGetValue(result.preview_max_size, DEFAULT_PREVIEW_MAX_SIZE);
     droparea_height = safeGetValue(result.droparea_height, DEFAULT_DROPAREA_HEIGHT);
@@ -353,6 +357,7 @@ function onSettingChanged(changes, areaName) {
 
     use_comment_clear = safeGetValue(changes.use_comment_clear.newValue, DEFAULT_USE_COMMENT_CLEAR);
     use_sage = safeGetValue(changes.use_sage.newValue, DEFAULT_USE_SAGE);
+    use_image_resize = safeGetValue(changes.use_image_resize.newValue, DEFAULT_USE_IMAGE_RESIZE);
     expand_file_input = safeGetValue(changes.expand_file_input.newValue, DEFAULT_EXPAND_FILE_INPUT);
     preview_max_size = safeGetValue(changes.preview_max_size.newValue, DEFAULT_PREVIEW_MAX_SIZE);
     droparea_height = safeGetValue(changes.droparea_height.newValue, DEFAULT_DROPAREA_HEIGHT);
