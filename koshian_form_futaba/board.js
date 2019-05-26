@@ -327,7 +327,7 @@ function main() {
 
     let form = new Form();
 
-    form.dom = ftbl.parentElement;
+    form.dom = document.getElementById("fm") || ftbl.parentElement;
     if (!form.dom) {
         return;
     }
@@ -336,6 +336,7 @@ function main() {
     if (!form.textarea) {
         return;
     }
+    form.dom.id = "KOSHIAN_fm"; // base4ajax.jsからの送信を抑制（将来の変更に備える）
 
     form.dom.onsubmit = (e) => {
         e.preventDefault();
@@ -413,7 +414,7 @@ function onSettingChanged(changes, areaName) {
     document.documentElement.style.setProperty("--droparea-height", droparea_height + "px");
     document.documentElement.style.setProperty("--droparea-border", droparea_border);
 
-    let form = document.getElementById("fm");
+    let form = document.getElementById("KOSHIAN_fm");
     if (form) {
         let textarea = form.getElementsByTagName("textarea")[0];
         if (textarea) makeCommentClearButton(textarea);
