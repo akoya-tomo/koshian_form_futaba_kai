@@ -7,6 +7,7 @@
     createBoundary,
     convertUnicode2Buffer,
     appendBuffer,
+    isAscii,
     makeCommentClearButton,
     makeSageButton,
     setFormFileInput,
@@ -353,15 +354,6 @@ class Form {
         fixFormPosition();
     }
 
-}
-
-function isAscii(str) {
-    str = str == null ? "" : str;
-    if (str.match(/^[\x20-\x7e]*$/)) {
-        return true;
-    } else {
-        return false;
-    }
 }
 
 function fixFormPosition() {

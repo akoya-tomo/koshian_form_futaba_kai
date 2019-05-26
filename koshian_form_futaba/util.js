@@ -7,6 +7,7 @@
     createBoundary,
     convertUnicode2Buffer,
     appendBuffer,
+    isAscii,
     makeCommentClearButton,
     makeSageButton,
     setFormFileInput,
@@ -73,6 +74,20 @@ function convertDataURI2Buffer(data_uri) {      //eslint-disable-line no-unused-
     }
 
     return uint8_buffer.buffer;
+}
+
+/**
+ * 文字列が全てASCII文字か判定
+ * @param {string} str 判定する文字列
+ * @return {boolean} 全てASCII文字か
+ */
+function isAscii(str) { //eslint-disable-line no-unused-vars
+    str = str || "";
+    if (str.match(/^[\x20-\x7e]*$/)) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 /**

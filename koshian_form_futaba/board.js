@@ -7,6 +7,7 @@
     createBoundary,
     convertUnicode2Buffer,
     appendBuffer,
+    isAscii,
     makeCommentClearButton,
     makeSageButton,
     setFormFileInput,
@@ -124,15 +125,20 @@ class Form {
         // フォーム内の要素からマルチパートフォームデータ作成
         for (let elm of this.dom.elements) {
             if (elm.name) {
-                if (elm.tagName == "TEXTAREA" || elm.type == "text") {
+                if (elm.tagName == "TEXTAREA" || elm.type == "text" || elm.name == "chrenc") {
                     // テキスト
                     this.setText(elm.name, elm.value);
                 } else if (elm.type == "file") {
                     // ファイル
                     this.setFile(elm.name);
                 } else if (elm.type != "checkbox" || elm.checked) {
-                    // パラメータ
-                    this.setParam(elm.name, elm.value);
+                    if (isAscii(elm.value)) {
+                        // パラメータ
+                        this.setParam(elm.name, elm.value);
+                    } else {
+                        // テキスト
+                        this.setText(elm.name, elm.value);
+                    }
                 }
             }
         }
