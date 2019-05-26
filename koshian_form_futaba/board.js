@@ -1,8 +1,9 @@
 /* globals XMLHttpRequest */
 /* globals SCRIPT_NAME */   //eslint-disable-line no-unused-vars
-/* globals DEFAULT_TIME_OUT, DEFAULT_USE_COMMENT_CLEAR, DEFAULT_USE_SAGE, DEFAULT_USE_IMAGE_RESIZE, DEFAULT_EXPAND_FILE_INPUT, DEFAULT_PREVIEW_MAX_SIZE, DEFAULT_DROPAREA_HEIGHT */
-/* globals DEFAULT_VIDEO_AUTOPLAY, DEFAULT_VIDEO_LOOP, DEFAULT_POPUP_FILE_DIALOG, DEFAULT_DROPAREA_BORDER, DEFAULT_DROPAREA_TEXT, DEFAULT_OPEN_NEW_THREAD, DEFAULT_MAX_FILE_SIZE */
-/* globals use_comment_clear, usa_sage, expand_file_input, preview_max_size, droparea_height, video_autolay, video_loop, popup_file_dialog, droparea_text */    //eslint-disable-line no-unused-vars
+/* globals DEFAULT_TIME_OUT, DEFAULT_USE_COMMENT_CLEAR, DEFAULT_USE_SAGE, DEFAULT_ERASE_CANVAS_JS, DEFAULT_USE_IMAGE_RESIZE, DEFAULT_EXPAND_FILE_INPUT */
+/* globals DEFAULT_PREVIEW_MAX_SIZE, DEFAULT_DROPAREA_HEIGHT, DEFAULT_VIDEO_AUTOPLAY, DEFAULT_VIDEO_LOOP, DEFAULT_POPUP_FILE_DIALOG, DEFAULT_DROPAREA_BORDER, DEFAULT_DROPAREA_TEXT */
+/* globals DEFAULT_OPEN_NEW_THREAD, DEFAULT_MAX_FILE_SIZE */
+/* globals use_comment_clear, usa_sage, use_image_resize, expand_file_input, preview_max_size, video_autolay, video_loop, popup_file_dialog, droparea_text */  //eslint-disable-line no-unused-vars
 /* globals 
     createBoundary,
     convertUnicode2Buffer,
@@ -18,6 +19,7 @@ const SCRIPT_NAME = "KOSHIAN_form/board.js";
 let time_out = DEFAULT_TIME_OUT;
 let use_comment_clear = DEFAULT_USE_COMMENT_CLEAR;      //eslint-disable-line no-unused-vars
 let use_sage = DEFAULT_USE_SAGE;        //eslint-disable-line no-unused-vars
+let erase_canvas_js = DEFAULT_ERASE_CANVAS_JS;
 let use_image_resize = DEFAULT_USE_IMAGE_RESIZE;  //eslint-disable-line no-unused-vars
 let expand_file_input = DEFAULT_EXPAND_FILE_INPUT;  //eslint-disable-line no-unused-vars
 let preview_max_size = DEFAULT_PREVIEW_MAX_SIZE;
@@ -265,6 +267,14 @@ class Form {
         } else if (oebtnfm && oebtnfm.style.display !== "none") {
             oebtnfm.click();
         }
+        // 手書きjsのキャンバスを消去
+        let oejs = document.getElementById("oejs");
+        if (oejs && erase_canvas_js) {
+            let oejs = document.getElementById("oejs");
+            let ctx = oejs.getContext('2d');
+            ctx.fillStyle = "#f0e0d6";
+            ctx.fillRect(0, 0, oejs.width, oejs.height);
+        }
 
         let url_mes = /<META HTTP-EQUIV="refresh" content="1;URL=(res\/(\d+)\.htm)">/;
         let new_url = url_mes.exec(res);  // res内の新スレのアドレスを取得
@@ -347,6 +357,7 @@ function onError(error) {
 function onSettingGot(result) {
     use_comment_clear = safeGetValue(result.use_comment_clear, DEFAULT_USE_COMMENT_CLEAR);
     use_sage = safeGetValue(result.use_sage, DEFAULT_USE_SAGE);
+    erase_canvas_js = safeGetValue(result.erase_canvas_js, DEFAULT_ERASE_CANVAS_JS);
     use_image_resize = safeGetValue(result.use_image_resize, DEFAULT_USE_IMAGE_RESIZE);
     expand_file_input = safeGetValue(result.expand_file_input, DEFAULT_EXPAND_FILE_INPUT);
     preview_max_size = safeGetValue(result.preview_max_size, DEFAULT_PREVIEW_MAX_SIZE);
@@ -379,6 +390,7 @@ function onSettingChanged(changes, areaName) {
 
     use_comment_clear = safeGetValue(changes.use_comment_clear.newValue, DEFAULT_USE_COMMENT_CLEAR);
     use_sage = safeGetValue(changes.use_sage.newValue, DEFAULT_USE_SAGE);
+    erase_canvas_js = safeGetValue(changes.erase_canvas_js.newValue, DEFAULT_ERASE_CANVAS_JS);
     use_image_resize = safeGetValue(changes.use_image_resize.newValue, DEFAULT_USE_IMAGE_RESIZE);
     expand_file_input = safeGetValue(changes.expand_file_input.newValue, DEFAULT_EXPAND_FILE_INPUT);
     preview_max_size = safeGetValue(changes.preview_max_size.newValue, DEFAULT_PREVIEW_MAX_SIZE);
