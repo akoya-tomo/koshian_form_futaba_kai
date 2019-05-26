@@ -17,15 +17,15 @@
 
 const SCRIPT_NAME = "KOSHIAN_form/board.js";
 let time_out = DEFAULT_TIME_OUT;
-let use_comment_clear = DEFAULT_USE_COMMENT_CLEAR;      //eslint-disable-line no-unused-vars
-let use_sage = DEFAULT_USE_SAGE;        //eslint-disable-line no-unused-vars
+let use_comment_clear = DEFAULT_USE_COMMENT_CLEAR;  //eslint-disable-line no-unused-vars
+let use_sage = DEFAULT_USE_SAGE;    //eslint-disable-line no-unused-vars
 let erase_canvas_js = DEFAULT_ERASE_CANVAS_JS;
 let use_image_resize = DEFAULT_USE_IMAGE_RESIZE;  //eslint-disable-line no-unused-vars
 let expand_file_input = DEFAULT_EXPAND_FILE_INPUT;  //eslint-disable-line no-unused-vars
 let preview_max_size = DEFAULT_PREVIEW_MAX_SIZE;
 let droparea_height = DEFAULT_DROPAREA_HEIGHT;
-let video_autoplay = DEFAULT_VIDEO_AUTOPLAY;        //eslint-disable-line no-unused-vars
-let video_loop = DEFAULT_VIDEO_LOOP;        //eslint-disable-line no-unused-vars
+let video_autoplay = DEFAULT_VIDEO_AUTOPLAY;    //eslint-disable-line no-unused-vars
+let video_loop = DEFAULT_VIDEO_LOOP;    //eslint-disable-line no-unused-vars
 let popup_file_dialog = DEFAULT_POPUP_FILE_DIALOG;  //eslint-disable-line no-unused-vars
 let droparea_text = DEFAULT_DROPAREA_TEXT;
 let open_new_thread = DEFAULT_OPEN_NEW_THREAD;
@@ -171,14 +171,16 @@ class Form {
 
     setFile(name) {
         let filename = this.file.name ? `file.${this.file.type.split("/")[1]}` : "";    // UTF8固定なのでファイル名はASCIIのみ
-        let type = this.file.type ? this.file.type : "application/octet-stream";
+        let type = this.file.type || "application/octet-stream";
         let buffer = convertUnicode2Buffer("UTF8",
             "--" + this.boundary + "\r\n" +
             `Content-Disposition: form-data; name="${name}"; filename="${filename}"\r\n` +
             `Content-Type: ${type}\r\n` +
             "\r\n"
         );
-        if (this.file.buffer) buffer = appendBuffer(buffer, this.file.buffer);
+        if (this.file.buffer) {
+            buffer = appendBuffer(buffer, this.file.buffer);
+        }
         buffer = appendBuffer(buffer, convertUnicode2Buffer("UTF8", "\r\n"));
         this.buffer = appendBuffer(this.buffer, buffer);
     }
@@ -197,20 +199,20 @@ class Form {
 
     onResponseLoad(xhr){
         this.buffer = null;
-        try{
+        try {
             switch(xhr.status){
-              case 200:  // eslint-disable-line indent
-                if (this.isSuccess(xhr.response)) {
-                    this.moveToNewThread(xhr.response);
-                } else {
-                    this.onResponseError(xhr.response);
-                }
-                break;
-              default:  // eslint-disable-line indent
-                this.notify.setAlertText(`スレ立て結果取得失敗 CODE:${xhr.status}`);
-                this.loading = false;
+                case 200:
+                    if (this.isSuccess(xhr.response)) {
+                        this.moveToNewThread(xhr.response);
+                    } else {
+                        this.onResponseError(xhr.response);
+                    }
+                    break;
+                default:
+                    this.notify.setAlertText(`スレ立て結果取得失敗 CODE:${xhr.status}`);
+                    this.loading = false;
             }
-        }catch(e){
+        } catch(e) {
             this.notify.setAlertText("スレ立て結果取得失敗");
             console.error(SCRIPT_NAME + " - onResponseLoad error:");
             console.dir(e);
@@ -225,7 +227,7 @@ class Form {
 
     onResponseError(res) {
         let error_mes = /<font color=red size=5><b>(.+?)<br><br>/;
-        let mes = error_mes.exec(res);  // res内のエラーメッセージを取得
+        let mes = res.match(error_mes);  // res内のエラーメッセージを取得
         let text;
         if (mes) {
             text = mes[1].replace(/<br>/ig, "。");    // mes内の<br>を。に置換
@@ -276,13 +278,13 @@ class Form {
             ctx.fillRect(0, 0, oejs.width, oejs.height);
         }
 
-        let url_mes = /<META HTTP-EQUIV="refresh" content="1;URL=(res\/(\d+)\.htm)">/;
-        let new_url = url_mes.exec(res);  // res内の新スレのアドレスを取得
+        let url_mes = /<META HTTP-EQUIV="refresh" content="1;URL=(res\/\d+\.htm)">/;
+        let new_url = res.match(url_mes);  // res内の新スレのアドレスを取得
         if (new_url) {
             let origin = location.origin;
             let path_name = location.pathname.match(/[^/]+/);
             let new_thre = origin + "/" + path_name + "/" + new_url[1];
-            let url_match = /^https?:\/\/.+\.2chan\.net\/.+\/res\/(\d+)\.htm$/.test(new_thre);
+            let url_match = /^https?:\/\/[^.]+\.2chan\.net\/[^/]+\/res\/\d+\.htm$/.test(new_thre);
             if (url_match) {
                 if (open_new_thread) {
                     let new_window = window.open(new_thre);
@@ -352,7 +354,7 @@ function safeGetValue(value, default_value) {
     return value === undefined ? default_value : value;
 }
 
-function onError(error) {
+function onError(error) {   //eslint-disable-line no-unused-vars
 }
 
 function onSettingGot(result) {

@@ -61,10 +61,12 @@ function appendBuffer(buf1, buf2) { //eslint-disable-line no-unused-vars
  * @param {string} data_uri dataURI文字列
  * @return {ArrayBuffer} 変換したバッファ
  */
-function convertDataURI2Buffer(data_uri) {      //eslint-disable-line no-unused-vars
+function convertDataURI2Buffer(data_uri) {
     // base64部をバイナリデータの文字列にデコード
     let base64 = data_uri.split(',')[1];
-    if (!base64) return;
+    if (!base64) {
+        return;
+    }
     let byte_string = atob(base64);
 
     // Uint8のビューを作成してデコードした文字列を格納し、そのバッファを返す
@@ -263,7 +265,9 @@ function setFormFileInput(form) {   //eslint-disable-line no-unused-vars
                         resetFilenameText(form.file.name);
                         this.innerHTML = "";
                         this.blur();
-                        if (popup_file_dialog) form.file.dom.click();
+                        if (popup_file_dialog) {
+                            form.file.dom.click();
+                        }
                     }, 200);
                 });
             }
@@ -415,7 +419,7 @@ function setFormFileInput(form) {   //eslint-disable-line no-unused-vars
  * ファイル入力ボタン配置
  * @param {Object} file 添付ファイルの情報を格納したオブジェクト
  */
-function makeInputButton(file) {    //eslint-disable-line no-unused-vars
+function makeInputButton(file) {
     if (file.dom.id != "KOSHIAN_form_upfile") {
         // ファイル入力全体
         let file_input = document.createElement("div");
@@ -514,9 +518,11 @@ function makeInputButton(file) {    //eslint-disable-line no-unused-vars
  * ファイル入力画面初期化
  * @param {Object} file 添付ファイルの情報を格納したオブジェクト
  */
-function initInputButton(file) {    //eslint-disable-line no-unused-vars
+function initInputButton(file) {
     if (file.dom.id) {
-        if (document.getElementById("ffip_input_file")) return;
+        if (document.getElementById("ffip_input_file")) {
+            return;
+        }
         file.dom.id = "";
         file.dom.className = "";
         file.dom.autocomplete = "nope";	// リロード時の添付ファイル復活を抑止
@@ -558,27 +564,36 @@ function clearFile(file) {
  * プレビュークリア
  */
 function clearPreview() {
+    // ファイル名初期化
     let filename = document.getElementById("KOSHIAN_form_filename");
-    if (filename) filename.textContent = INPUT_FILE_TEXT;
+    if (filename) {
+        filename.textContent = INPUT_FILE_TEXT;
+    }
     // プレビュー初期化
     let preview = document.getElementById("KOSHIAN_form_preview");
-    if (!preview) return;
+    if (!preview) {
+        return;
+    }
     let droparea = document.createElement("div");
     droparea.id = "KOSHIAN_form_preview";
     droparea.className = "KOSHIAN-form-droparea";
     droparea.textContent = droparea_text;
     preview.parentElement.replaceChild(droparea, preview);
     let file_info = document.getElementById("KOSHIAN_form_file_info");
-    if (file_info) file_info.innerHTML = "";
+    if (file_info) {
+        file_info.innerHTML = "";
+    }
 }
 
 /**
  * プレビュー表示
  * @param {Object} file 添付ファイルの情報を格納したオブジェクト
  */
-function previewFile(file) {    //eslint-disable-line no-unused-vars
+function previewFile(file) {
     let filename = document.getElementById("KOSHIAN_form_filename");
-    if (filename) filename.textContent = file.name;
+    if (filename) {
+        filename.textContent = file.name;
+    }
     if (preview_max_size == 0) {
         file.loading = false;
         return;
@@ -609,7 +624,7 @@ function previewFile(file) {    //eslint-disable-line no-unused-vars
     // WebM･mp4の幅と高さ取得
     if (fileType[0] == "video") {
         // メタデータ読み込み完了
-        preview.addEventListener("loadedmetadata", function (){
+        preview.addEventListener("loadedmetadata", () => {
             img_width = preview.videoWidth;
             img_height = preview.videoHeight;
             dispFileInfo();
@@ -639,7 +654,9 @@ function previewFile(file) {    //eslint-disable-line no-unused-vars
      */
     function dispFileInfo() {
         let file_info = document.getElementById("KOSHIAN_form_file_info");
-        if (!file_info) return;
+        if (!file_info) {
+            return;
+        }
         file_info.innerHTML = "";
 
         let img_size = document.createElement("span");
