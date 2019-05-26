@@ -1,29 +1,32 @@
 /* globals XMLHttpRequest */
-/* globals DEFAULT_TIME_OUT, DEFAULT_USE_COMMENT_CLEAR, DEFAULT_USE_SAGE, DEFAULT_EXPAND_FILE_INPUT, DEFAULT_PREVIEW_MAX_SIZE, DEFAULT_DROPAREA_HEIGHT */
-/* globals DEFAULT_VIDEO_AUTOPLAY, DEFAULT_VIDEO_LOOP, DEFAULT_POPUP_FILE_DIALOG, DEFAULT_DROPAREA_BORDER, DEFAULT_DROPAREA_TEXT, DEFAULT_OPEN_NEW_THREAD */
-/* globals use_comment_clear, usa_sage, video_autolay, video_loop */    //eslint-disable-line no-unused-vars
+/* globals SCRIPT_NAME */   //eslint-disable-line no-unused-vars
+/* globals DEFAULT_TIME_OUT, DEFAULT_USE_COMMENT_CLEAR, DEFAULT_USE_SAGE, DEFAULT_ERASE_CANVAS_JS, DEFAULT_USE_IMAGE_RESIZE, DEFAULT_EXPAND_FILE_INPUT */
+/* globals DEFAULT_PREVIEW_MAX_SIZE, DEFAULT_DROPAREA_HEIGHT, DEFAULT_VIDEO_AUTOPLAY, DEFAULT_VIDEO_LOOP, DEFAULT_POPUP_FILE_DIALOG, DEFAULT_DROPAREA_BORDER, DEFAULT_DROPAREA_TEXT */
+/* globals DEFAULT_OPEN_NEW_THREAD, DEFAULT_MAX_FILE_SIZE */
+/* globals use_comment_clear, usa_sage, use_image_resize, expand_file_input, preview_max_size, video_autolay, video_loop, popup_file_dialog, droparea_text */  //eslint-disable-line no-unused-vars
 /* globals 
     createBoundary,
     convertUnicode2Buffer,
     appendBuffer,
+    isAscii,
     makeCommentClearButton,
     makeSageButton,
-    initInputButton,
-    makeInputButton,
-    clearFile,
-    previewFile,
-    convertDataURI2Buffer
+    setFormFileInput,
+    clearFile
 */
 
+const SCRIPT_NAME = "KOSHIAN_form/board.js";
 let time_out = DEFAULT_TIME_OUT;
-let use_comment_clear = DEFAULT_USE_COMMENT_CLEAR;      //eslint-disable-line no-unused-vars
-let use_sage = DEFAULT_USE_SAGE;        //eslint-disable-line no-unused-vars
-let expand_file_input = DEFAULT_EXPAND_FILE_INPUT;
+let use_comment_clear = DEFAULT_USE_COMMENT_CLEAR;  //eslint-disable-line no-unused-vars
+let use_sage = DEFAULT_USE_SAGE;    //eslint-disable-line no-unused-vars
+let erase_canvas_js = DEFAULT_ERASE_CANVAS_JS;
+let use_image_resize = DEFAULT_USE_IMAGE_RESIZE;  //eslint-disable-line no-unused-vars
+let expand_file_input = DEFAULT_EXPAND_FILE_INPUT;  //eslint-disable-line no-unused-vars
 let preview_max_size = DEFAULT_PREVIEW_MAX_SIZE;
 let droparea_height = DEFAULT_DROPAREA_HEIGHT;
-let video_autoplay = DEFAULT_VIDEO_AUTOPLAY;        //eslint-disable-line no-unused-vars
-let video_loop = DEFAULT_VIDEO_LOOP;        //eslint-disable-line no-unused-vars
-let popup_file_dialog = DEFAULT_POPUP_FILE_DIALOG;
+let video_autoplay = DEFAULT_VIDEO_AUTOPLAY;    //eslint-disable-line no-unused-vars
+let video_loop = DEFAULT_VIDEO_LOOP;    //eslint-disable-line no-unused-vars
+let popup_file_dialog = DEFAULT_POPUP_FILE_DIALOG;  //eslint-disable-line no-unused-vars
 let droparea_text = DEFAULT_DROPAREA_TEXT;
 let open_new_thread = DEFAULT_OPEN_NEW_THREAD;
 
@@ -88,7 +91,9 @@ class Form {
             buffer : null,
             name : null,
             size : null,
-            type : null
+            type : null,
+            loading : false,
+            max_size : DEFAULT_MAX_FILE_SIZE
         };
     }
 
@@ -122,15 +127,20 @@ class Form {
         // フォーム内の要素からマルチパートフォームデータ作成
         for (let elm of this.dom.elements) {
             if (elm.name) {
-                if (elm.tagName == "TEXTAREA" || elm.type == "text") {
+                if (elm.tagName == "TEXTAREA" || elm.type == "text" || elm.name == "chrenc") {
                     // テキスト
                     this.setText(elm.name, elm.value);
                 } else if (elm.type == "file") {
                     // ファイル
                     this.setFile(elm.name);
                 } else if (elm.type != "checkbox" || elm.checked) {
-                    // パラメータ
-                    this.setParam(elm.name, elm.value);
+                    if (isAscii(elm.value)) {
+                        // パラメータ
+                        this.setParam(elm.name, elm.value);
+                    } else {
+                        // テキスト
+                        this.setText(elm.name, elm.value);
+                    }
                 }
             }
         }
@@ -160,15 +170,17 @@ class Form {
     }
 
     setFile(name) {
-        let filename = this.file.name ? "filename" : "";
-        let type = this.file.type ? this.file.type : "application/octet-stream";
+        let filename = this.file.name ? `file.${this.file.type.split("/")[1]}` : "";    // UTF8固定なのでファイル名はASCIIのみ
+        let type = this.file.type || "application/octet-stream";
         let buffer = convertUnicode2Buffer("UTF8",
             "--" + this.boundary + "\r\n" +
             `Content-Disposition: form-data; name="${name}"; filename="${filename}"\r\n` +
             `Content-Type: ${type}\r\n` +
             "\r\n"
         );
-        if (this.file.buffer) buffer = appendBuffer(buffer, this.file.buffer);
+        if (this.file.buffer) {
+            buffer = appendBuffer(buffer, this.file.buffer);
+        }
         buffer = appendBuffer(buffer, convertUnicode2Buffer("UTF8", "\r\n"));
         this.buffer = appendBuffer(this.buffer, buffer);
     }
@@ -187,22 +199,23 @@ class Form {
 
     onResponseLoad(xhr){
         this.buffer = null;
-        try{
+        try {
             switch(xhr.status){
-              case 200:  // eslint-disable-line indent
-                if (this.isSuccess(xhr.response)) {
-                    this.moveToNewThread(xhr.response);
-                } else {
-                    this.onResponseError(xhr.response);
-                }
-                break;
-              default:  // eslint-disable-line indent
-                this.notify.setAlertText(`スレ立て結果取得失敗 CODE:${xhr.status}`);
-                this.loading = false;
+                case 200:
+                    if (this.isSuccess(xhr.response)) {
+                        this.moveToNewThread(xhr.response);
+                    } else {
+                        this.onResponseError(xhr.response);
+                    }
+                    break;
+                default:
+                    this.notify.setAlertText(`スレ立て結果取得失敗 CODE:${xhr.status}`);
+                    this.loading = false;
             }
-        }catch(e){
+        } catch(e) {
             this.notify.setAlertText("スレ立て結果取得失敗");
-            console.error("KOSHIAN_form/board.js - onResponseLoad error: " + e);  // eslint-disable-line no-console
+            console.error(SCRIPT_NAME + " - onResponseLoad error:");
+            console.dir(e);
             this.loading = false;
         }
     }
@@ -214,12 +227,12 @@ class Form {
 
     onResponseError(res) {
         let error_mes = /<font color=red size=5><b>(.+?)<br><br>/;
-        let mes = error_mes.exec(res);  // res内のエラーメッセージを取得
+        let mes = res.match(error_mes);  // res内のエラーメッセージを取得
         let text;
         if (mes) {
             text = mes[1].replace(/<br>/ig, "。");    // mes内の<br>を。に置換
         } else {
-            console.error("KOSHIAN_form/board.js - onResponse error: " + res);  // eslint-disable-line no-console
+            console.debug(SCRIPT_NAME + " - onResponse error: " + res);
             text = "スレ立て処理でエラー発生";
         }
         this.notify.setAlertText(text);
@@ -233,21 +246,45 @@ class Form {
             this.notify.setText("送信完了。立てたスレに移動します……");
         }
 
+        // テキストクリア
         this.textarea.value = "";
+        // 添付ファイルクリア
         let clear_button = document.getElementById("KOSHIAN_form_clear_button") || document.getElementById("ffip_file_clear");
         if (clear_button) {
             clear_button.click();
         } else if (this.file.dom) {
             clearFile(this.file);
         }
+        // 手書きフォームデータクリア
+        let baseform = document.getElementById("baseform");
+        if (baseform) {
+            // base4ajax.jsの動作に合わせる
+            baseform.value = "";
+        }
+        // 手書きを閉じて文字入力に戻す
+        let oebtnjm = document.getElementById("oebtnjm");   // 手書きjsモードの「文字入力」ボタン
+        let oebtnfm = document.getElementById("oebtnfm");   // 手書き(flash)モードの「文字入力」ボタン
+        if (oebtnjm && oebtnjm.style.display !== "none") {
+            oebtnjm.click();
+        } else if (oebtnfm && oebtnfm.style.display !== "none") {
+            oebtnfm.click();
+        }
+        // 手書きjsのキャンバスを消去
+        let oejs = document.getElementById("oejs");
+        if (oejs && erase_canvas_js) {
+            let oejs = document.getElementById("oejs");
+            let ctx = oejs.getContext('2d');
+            ctx.fillStyle = "#f0e0d6";
+            ctx.fillRect(0, 0, oejs.width, oejs.height);
+        }
 
-        let url_mes = /<META HTTP-EQUIV="refresh" content="1;URL=(res\/(\d+)\.htm)">/;
-        let new_url = url_mes.exec(res);  // res内の新スレのアドレスを取得
+        let url_mes = /<META HTTP-EQUIV="refresh" content="1;URL=(res\/\d+\.htm)">/;
+        let new_url = res.match(url_mes);  // res内の新スレのアドレスを取得
         if (new_url) {
             let origin = location.origin;
             let path_name = location.pathname.match(/[^/]+/);
             let new_thre = origin + "/" + path_name + "/" + new_url[1];
-            let url_match = /^https?:\/\/.+\.2chan\.net\/.+\/res\/(\d+)\.htm$/.test(new_thre);
+            let url_match = /^https?:\/\/[^.]+\.2chan\.net\/[^/]+\/res\/\d+\.htm$/.test(new_thre);
             if (url_match) {
                 if (open_new_thread) {
                     let new_window = window.open(new_thre);
@@ -260,11 +297,11 @@ class Form {
                     location.href = new_thre;
                 }
             } else {
-                console.error("KOSHIAN_form/board.js - new thread address abnormal:" + new_thre);   // eslint-disable-line no-console
+                console.debug(SCRIPT_NAME + " - new thread address abnormal:" + new_thre);
                 this.notify.setAlertText("立てたスレのアドレス取得失敗。スレ立ては成功");
             }
         } else {
-            console.error("KOSHIAN_form/board.js - response abnormal:" + res);   // eslint-disable-line no-console
+            console.debug(SCRIPT_NAME + " - response abnormal:" + res);
             this.notify.setAlertText("立てたスレに移動失敗。スレ立ては成功");
         }
         this.loading = false;
@@ -292,7 +329,7 @@ function main() {
 
     let form = new Form();
 
-    form.dom = ftbl.parentElement;
+    form.dom = document.getElementById("fm") || ftbl.parentElement;
     if (!form.dom) {
         return;
     }
@@ -301,6 +338,7 @@ function main() {
     if (!form.textarea) {
         return;
     }
+    form.dom.id = "KOSHIAN_fm"; // base4ajax.jsからの送信を抑制（将来の変更に備える）
 
     form.dom.onsubmit = (e) => {
         e.preventDefault();
@@ -309,144 +347,21 @@ function main() {
 
     makeCommentClearButton(form.textarea);
     makeSageButton(form.dom);
-
-    form.file.dom = form.dom.querySelector('input[name="upfile"]');
-    if (form.file.dom) {
-        form.file.reader = new FileReader();
-
-        form.file.reader.addEventListener("load", () => {
-            form.file.buffer = form.file.reader.result;
-            form.file.obj = form.file.dom.files[0];
-            form.file.name = form.file.obj.name;
-            form.file.size = form.file.obj.size;
-            form.file.type = form.file.obj.type;
-            previewFile(form.file);
-        });
-
-        // ページ読み込み時にファイルが既にあれば読み込む
-        if (form.file.dom.files[0]) {
-            form.file.reader.readAsArrayBuffer(form.file.dom.files[0]);
-        }
-
-        form.file.dom.addEventListener("change", () => {
-            if (form.file.reader.readyState === FileReader.LOADING) {
-                form.file.reader.abort();
-            }
-
-            form.file.reader.readAsArrayBuffer(form.file.dom.files[0]);
-        });
-
-        if (expand_file_input) {
-            makeInputButton(form.file);
-
-            let pastearea = document.getElementById("KOSHIAN_form_pastearea");
-            if (pastearea) {
-                let timer = null;
-                pastearea.addEventListener("input", function() {
-                    // pasteイベントのタイマーをクリア
-                    if (timer) {
-                        clearTimeout(timer);
-                        timer = null;
-                    }
-                    // 貼り付けた内容にimgタグがあるか探す
-                    let pasted_image = this.getElementsByTagName("img")[0];
-                    if (pasted_image) {
-                        //console.log("KOSHIAN_form/board.js - pasted_image:");
-                        //console.dir(pasted_image);
-                        let data_uri = pasted_image.src.match(/^data:(image\/([^;]+));base64.+$/);
-                        if (data_uri) {
-                            setDataURI(data_uri);
-                        } else {
-                            try {
-                                fetch(pasted_image.src).then(function(response) {
-                                    return response.blob();
-                                }).then(function(blob) {
-                                    //console.log("KOSHIAN_form/board.js - blob.type: " + blob.type);
-                                    if (blob.type.match(/^image\//)) {
-                                        setBlob(blob);
-                                    } else {
-                                        console.log("KOSHIAN_form/board.js - blob type is not image");  // eslint-disable-line no-console
-                                    }
-                                });
-                            } catch(e) {
-                                console.error("KOSHIAN_form/board.js - fetch error: src=" + pasted_image.src + ", error=" );	// eslint-disable-line no-console
-                                console.dir(e); // eslint-disable-line no-console
-                                return;
-                            }
-                        }
-                    } else {
-                        //
-                        //console.log("KOSHIAN_form/board.js - No pasted image:");
-                        //console.dir(this);
-                    }
-                    this.innerHTML = "";
-                    this.blur();
-
-                    function setDataURI(data_uri) {
-                        let file_ext = data_uri[2];
-                        let file_type = data_uri[1];
-                        if (data_uri[0] && file_ext && file_type) {
-                            let buffer = convertDataURI2Buffer(data_uri[0]);
-                            if (buffer) {
-                                form.file.dom.value = "";
-                                form.file.buffer = buffer;
-                                form.file.name = `clipboard_image.${file_ext}`;
-                                form.file.type = file_type;
-                                form.file.obj = new File([buffer], form.file.name, { type: form.file.type } );
-                                form.file.size = form.file.obj.size;
-                                previewFile(form.file);
-                            } else {
-                                console.error("KOSHIAN_form/board.js - dataURI abnormal: " + data_uri[0]);    // eslint-disable-line no-console
-                            }
-                        } else {
-                            console.error("KOSHIAN_form/board.js - dataURI abnormal: ");    // eslint-disable-line no-console
-                            console.dir(data_uri);  // eslint-disable-line no-console
-                        }
-                    }
-
-                    function setBlob(blob) {
-                        let file_reader = new FileReader();
-                        file_reader.addEventListener("load", () => {
-                            let buffer = file_reader.result;
-                            let file_ext = blob.type.split("/")[1];
-                            let file_type = blob.type;
-                            form.file.dom.value = "";
-                            form.file.buffer = buffer;
-                            form.file.name = `clipboard_image.${file_ext}`;
-                            form.file.type = file_type;
-                            form.file.obj = new File([blob], form.file.name);
-                            form.file.size = form.file.obj.size;
-                            previewFile(form.file);
-                        });
-                        file_reader.readAsArrayBuffer(blob);
-                    }
-                });
-
-                pastearea.addEventListener("paste", function() {
-                    timer = setTimeout(() => {
-                        // クリップボードが画像ファイル以外（inputイベントが発生しない）
-                        this.innerHTML = "";
-                        this.blur();
-                        if (popup_file_dialog) form.file.dom.click();
-                    }, 200);
-                });
-            }
-        } else {
-            initInputButton(form.file);
-        }
-    }
+    setFormFileInput(form);
 }
 
 function safeGetValue(value, default_value) {
     return value === undefined ? default_value : value;
 }
 
-function onError(error) {
+function onError(error) {   //eslint-disable-line no-unused-vars
 }
 
 function onSettingGot(result) {
     use_comment_clear = safeGetValue(result.use_comment_clear, DEFAULT_USE_COMMENT_CLEAR);
     use_sage = safeGetValue(result.use_sage, DEFAULT_USE_SAGE);
+    erase_canvas_js = safeGetValue(result.erase_canvas_js, DEFAULT_ERASE_CANVAS_JS);
+    use_image_resize = safeGetValue(result.use_image_resize, DEFAULT_USE_IMAGE_RESIZE);
     expand_file_input = safeGetValue(result.expand_file_input, DEFAULT_EXPAND_FILE_INPUT);
     preview_max_size = safeGetValue(result.preview_max_size, DEFAULT_PREVIEW_MAX_SIZE);
     droparea_height = safeGetValue(result.droparea_height, DEFAULT_DROPAREA_HEIGHT);
@@ -478,6 +393,8 @@ function onSettingChanged(changes, areaName) {
 
     use_comment_clear = safeGetValue(changes.use_comment_clear.newValue, DEFAULT_USE_COMMENT_CLEAR);
     use_sage = safeGetValue(changes.use_sage.newValue, DEFAULT_USE_SAGE);
+    erase_canvas_js = safeGetValue(changes.erase_canvas_js.newValue, DEFAULT_ERASE_CANVAS_JS);
+    use_image_resize = safeGetValue(changes.use_image_resize.newValue, DEFAULT_USE_IMAGE_RESIZE);
     expand_file_input = safeGetValue(changes.expand_file_input.newValue, DEFAULT_EXPAND_FILE_INPUT);
     preview_max_size = safeGetValue(changes.preview_max_size.newValue, DEFAULT_PREVIEW_MAX_SIZE);
     droparea_height = safeGetValue(changes.droparea_height.newValue, DEFAULT_DROPAREA_HEIGHT);
@@ -499,7 +416,7 @@ function onSettingChanged(changes, areaName) {
     document.documentElement.style.setProperty("--droparea-height", droparea_height + "px");
     document.documentElement.style.setProperty("--droparea-border", droparea_border);
 
-    let form = document.getElementById("fm");
+    let form = document.getElementById("KOSHIAN_fm");
     if (form) {
         let textarea = form.getElementsByTagName("textarea")[0];
         if (textarea) makeCommentClearButton(textarea);
