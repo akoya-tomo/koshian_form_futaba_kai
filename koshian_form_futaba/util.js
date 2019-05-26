@@ -1,6 +1,7 @@
 /* globals Encoding */
+/* globals SCRIPT_NAME */
 /* globals INPUT_FILE_TEXT */
-/* globals use_comment_clear, use_sage, droparea_text, preview_max_size, video_autoplay, video_loop */
+/* globals use_comment_clear, use_sage, expand_file_input, droparea_text, preview_max_size, video_autoplay, video_loop, popup_file_dialog */
 /* eslint-disable no-unused-vars */
 /* globals 
     createBoundary,
@@ -8,11 +9,8 @@
     appendBuffer,
     makeCommentClearButton,
     makeSageButton,
-    initInputButton,
-    makeInputButton,
-    clearFile,
-    previewFile,
-    convertDataURI2Buffer
+    setFormFileInput,
+    clearFile
 */
 /* eslint-enable no-unused-vars */
 
@@ -54,6 +52,26 @@ function appendBuffer(buf1, buf2) { //eslint-disable-line no-unused-vars
     let uint8_buffer = new Uint8Array(buf1.byteLength + buf2.byteLength);
     uint8_buffer.set(new Uint8Array(buf1),0);
     uint8_buffer.set(new Uint8Array(buf2),buf1.byteLength);
+    return uint8_buffer.buffer;
+}
+
+/**
+ * dataURI文字列からバッファに変換
+ * @param {string} data_uri dataURI文字列
+ * @return {ArrayBuffer} 変換したバッファ
+ */
+function convertDataURI2Buffer(data_uri) {      //eslint-disable-line no-unused-vars
+    // base64部をバイナリデータの文字列にデコード
+    let base64 = data_uri.split(',')[1];
+    if (!base64) return;
+    let byte_string = atob(base64);
+
+    // Uint8のビューを作成してデコードした文字列を格納し、そのバッファを返す
+    let uint8_buffer = new Uint8Array(byte_string.length);
+    for (let i = 0; i < byte_string.length; i++) {
+        uint8_buffer[i] = byte_string.charCodeAt(i);  // Unicode値で格納
+    }
+
     return uint8_buffer.buffer;
 }
 
@@ -115,28 +133,133 @@ function makeSageButton(form) { //eslint-disable-line no-unused-vars
 }
 
 /**
- * ファイル入力画面初期化
- * @param {Object} file 添付ファイルの情報を格納したオブジェクト
+ * 返信フォームの添付ファイル入力設定
+ * @param {Object} form 返信フォームの情報を格納したオブジェクト
  */
-function initInputButton(file) {    //eslint-disable-line no-unused-vars
-    if (file.dom.id) {
-        if (document.getElementById("ffip_input_file")) return;
-        file.dom.id = "";
-        file.dom.className = "";
-        file.dom.autocomplete = "nope";	// リロード時の添付ファイル復活を抑止
+function setFormFileInput(form) {   //eslint-disable-line no-unused-vars
+    form.file.dom = form.dom.querySelector('input[name="upfile"]');
+    if (form.file.dom) {
+        form.file.reader = new FileReader();
 
-        for (let elm = file.dom.parentElement; elm; elm = elm.parentElement) {
-            if (elm.tagName == "TD") {
-                let label = document.createElement("label");
-                let input = document.createElement("input");
-                input.name = "textonly";
-                input.value = "on";
-                input.type = "checkbox";
-                label.append(input, "画像無し");
-                elm.innerHTML = "";
-                elm.append(file.dom, "[", label, "]");
-                break;
+        form.file.reader.addEventListener("load", () => {
+            form.file.buffer = form.file.reader.result;
+            form.file.obj = form.file.dom.files[0];
+            form.file.name = form.file.obj.name;
+            form.file.size = form.file.obj.size;
+            form.file.type = form.file.obj.type;
+            previewFile(form.file);
+        });
+
+        // ページ読み込み時にファイルが既にあれば読み込む
+        if (form.file.dom.files[0]) {
+            form.file.reader.readAsArrayBuffer(form.file.dom.files[0]);
+        }
+
+        form.file.dom.addEventListener("change", () => {
+            if (form.file.reader.readyState === FileReader.LOADING) {
+                form.file.reader.abort();
             }
+
+            form.file.reader.readAsArrayBuffer(form.file.dom.files[0]);
+        });
+
+        if (expand_file_input) {
+            makeInputButton(form.file);
+
+            let pastearea = document.getElementById("KOSHIAN_form_pastearea");
+            if (pastearea) {
+                let timer = null;
+                pastearea.addEventListener("input", function() {
+                    // pasteイベントのタイマーをクリア
+                    if (timer) {
+                        clearTimeout(timer);
+                        timer = null;
+                    }
+                    // 貼り付けた内容にimgタグがあるか探す
+                    let pasted_image = this.getElementsByTagName("img")[0];
+                    if (pasted_image) {
+                        //console.log(SCRIPT_NAME + " - pasted_image:");
+                        //console.dir(pasted_image);
+                        let data_uri = pasted_image.src.match(/^data:(image\/([^;]+));base64.+$/);
+                        if (data_uri) {
+                            setDataURI(data_uri);
+                        } else {
+                            try {
+                                fetch(pasted_image.src).then(function(response) {
+                                    return response.blob();
+                                }).then(function(blob) {
+                                    //console.log("KOSHIAN_form/res.js - blob.type: " + blob.type);
+                                    if (blob.type.match(/^image\//)) {
+                                        setBlob(blob);
+                                    } else {
+                                        console.log("KOSHIAN_form/res.js - blob type is not image");  // eslint-disable-line no-console
+                                    }
+                                });
+                            } catch(e) {
+                                console.error("KOSHIAN_form/res.js - fetch error: src=" + pasted_image.src + ", error=" );	// eslint-disable-line no-console
+                                console.dir(e); // eslint-disable-line no-console
+                                return;
+                            }
+                        }
+                    } else {
+                        //
+                        //console.log(SCRIPT_NAME + " - No pasted image:");
+                        //console.dir(this);
+                    }
+                    this.innerHTML = "";
+                    this.blur();
+
+                    function setDataURI(data_uri) {
+                        let file_ext = data_uri[2];
+                        let file_type = data_uri[1];
+                        if (data_uri[0] && file_ext && file_type) {
+                            let buffer = convertDataURI2Buffer(data_uri[0]);
+                            if (buffer) {
+                                form.file.dom.value = "";
+                                form.file.buffer = buffer;
+                                form.file.name = `clipboard_image.${file_ext}`;
+                                form.file.type = file_type;
+                                form.file.obj = new File([buffer], form.file.name, { type: form.file.type } );
+                                form.file.size = form.file.obj.size;
+                                previewFile(form.file);
+                            } else {
+                                console.error("KOSHIAN_form/res.js - dataURI abnormal: " + data_uri[0]);    // eslint-disable-line no-console
+                            }
+                        } else {
+                            console.error("KOSHIAN_form/res.js - dataURI abnormal: ");    // eslint-disable-line no-console
+                            console.dir(data_uri);  // eslint-disable-line no-console
+                        }
+                    }
+
+                    function setBlob(blob) {
+                        let file_reader = new FileReader();
+                        file_reader.addEventListener("load", () => {
+                            let buffer = file_reader.result;
+                            let file_ext = blob.type.split("/")[1];
+                            let file_type = blob.type;
+                            form.file.dom.value = "";
+                            form.file.buffer = buffer;
+                            form.file.name = `clipboard_image.${file_ext}`;
+                            form.file.type = file_type;
+                            form.file.obj = new File([blob], form.file.name);
+                            form.file.size = form.file.obj.size;
+                            previewFile(form.file);
+                        });
+                        file_reader.readAsArrayBuffer(blob);
+                    }
+                });
+
+                pastearea.addEventListener("paste", function() {
+                    timer = setTimeout(() => {
+                        // クリップボードが画像ファイル以外（inputイベントが発生しない）
+                        this.innerHTML = "";
+                        this.blur();
+                        if (popup_file_dialog) form.file.dom.click();
+                    }, 200);
+                });
+            }
+        } else {
+            initInputButton(form.file);
         }
     }
 }
@@ -233,6 +356,33 @@ function makeInputButton(file) {    //eslint-disable-line no-unused-vars
         if (pastearea) {
             pastearea.focus();
             document.execCommand("paste");
+        }
+    }
+}
+
+/**
+ * ファイル入力画面初期化
+ * @param {Object} file 添付ファイルの情報を格納したオブジェクト
+ */
+function initInputButton(file) {    //eslint-disable-line no-unused-vars
+    if (file.dom.id) {
+        if (document.getElementById("ffip_input_file")) return;
+        file.dom.id = "";
+        file.dom.className = "";
+        file.dom.autocomplete = "nope";	// リロード時の添付ファイル復活を抑止
+
+        for (let elm = file.dom.parentElement; elm; elm = elm.parentElement) {
+            if (elm.tagName == "TD") {
+                let label = document.createElement("label");
+                let input = document.createElement("input");
+                input.name = "textonly";
+                input.value = "on";
+                input.type = "checkbox";
+                label.append(input, "画像無し");
+                elm.innerHTML = "";
+                elm.append(file.dom, "[", label, "]");
+                break;
+            }
         }
     }
 }
@@ -349,22 +499,3 @@ function previewFile(file) {    //eslint-disable-line no-unused-vars
     }
 }
 
-/**
- * dataURI文字列からバッファに変換
- * @param {string} data_uri dataURI文字列
- * @return {ArrayBuffer} 変換したバッファ
- */
-function convertDataURI2Buffer(data_uri) {      //eslint-disable-line no-unused-vars
-    // base64部をバイナリデータの文字列にデコード
-    let base64 = data_uri.split(',')[1];
-    if (!base64) return;
-    let byte_string = atob(base64);
-
-    // Uint8のビューを作成してデコードした文字列を格納し、そのバッファを返す
-    let uint8_buffer = new Uint8Array(byte_string.length);
-    for (let i = 0; i < byte_string.length; i++) {
-        uint8_buffer[i] = byte_string.charCodeAt(i);  // Unicode値で格納
-    }
-
-    return uint8_buffer.buffer;
-}

@@ -1,29 +1,28 @@
 /* globals XMLHttpRequest */
+/* globals SCRIPT_NAME */   //eslint-disable-line no-unused-vars
 /* globals DEFAULT_TIME_OUT, DEFAULT_USE_COMMENT_CLEAR, DEFAULT_USE_SAGE, DEFAULT_EXPAND_FILE_INPUT, DEFAULT_PREVIEW_MAX_SIZE, DEFAULT_DROPAREA_HEIGHT */
 /* globals DEFAULT_VIDEO_AUTOPLAY, DEFAULT_VIDEO_LOOP, DEFAULT_POPUP_FILE_DIALOG, DEFAULT_DROPAREA_BORDER, DEFAULT_DROPAREA_TEXT, DEFAULT_OPEN_NEW_THREAD */
-/* globals use_comment_clear, usa_sage, video_autolay, video_loop */    //eslint-disable-line no-unused-vars
+/* globals use_comment_clear, usa_sage, expand_file_input, preview_max_size, droparea_height, video_autolay, video_loop, popup_file_dialog, droparea_text */    //eslint-disable-line no-unused-vars
 /* globals 
     createBoundary,
     convertUnicode2Buffer,
     appendBuffer,
     makeCommentClearButton,
     makeSageButton,
-    initInputButton,
-    makeInputButton,
-    clearFile,
-    previewFile,
-    convertDataURI2Buffer
+    setFormFileInput,
+    clearFile
 */
 
+const SCRIPT_NAME = "KOSHIAN_form/board.js";
 let time_out = DEFAULT_TIME_OUT;
 let use_comment_clear = DEFAULT_USE_COMMENT_CLEAR;      //eslint-disable-line no-unused-vars
 let use_sage = DEFAULT_USE_SAGE;        //eslint-disable-line no-unused-vars
-let expand_file_input = DEFAULT_EXPAND_FILE_INPUT;
+let expand_file_input = DEFAULT_EXPAND_FILE_INPUT;  //eslint-disable-line no-unused-vars
 let preview_max_size = DEFAULT_PREVIEW_MAX_SIZE;
 let droparea_height = DEFAULT_DROPAREA_HEIGHT;
 let video_autoplay = DEFAULT_VIDEO_AUTOPLAY;        //eslint-disable-line no-unused-vars
 let video_loop = DEFAULT_VIDEO_LOOP;        //eslint-disable-line no-unused-vars
-let popup_file_dialog = DEFAULT_POPUP_FILE_DIALOG;
+let popup_file_dialog = DEFAULT_POPUP_FILE_DIALOG;  //eslint-disable-line no-unused-vars
 let droparea_text = DEFAULT_DROPAREA_TEXT;
 let open_new_thread = DEFAULT_OPEN_NEW_THREAD;
 
@@ -202,7 +201,8 @@ class Form {
             }
         }catch(e){
             this.notify.setAlertText("スレ立て結果取得失敗");
-            console.error("KOSHIAN_form/board.js - onResponseLoad error: " + e);  // eslint-disable-line no-console
+            console.error(SCRIPT_NAME + " - onResponseLoad error:");
+            console.dir(e);
             this.loading = false;
         }
     }
@@ -219,7 +219,7 @@ class Form {
         if (mes) {
             text = mes[1].replace(/<br>/ig, "。");    // mes内の<br>を。に置換
         } else {
-            console.error("KOSHIAN_form/board.js - onResponse error: " + res);  // eslint-disable-line no-console
+            console.debug(SCRIPT_NAME + " - onResponse error: " + res);
             text = "スレ立て処理でエラー発生";
         }
         this.notify.setAlertText(text);
@@ -260,11 +260,11 @@ class Form {
                     location.href = new_thre;
                 }
             } else {
-                console.error("KOSHIAN_form/board.js - new thread address abnormal:" + new_thre);   // eslint-disable-line no-console
+                console.debug(SCRIPT_NAME + " - new thread address abnormal:" + new_thre);
                 this.notify.setAlertText("立てたスレのアドレス取得失敗。スレ立ては成功");
             }
         } else {
-            console.error("KOSHIAN_form/board.js - response abnormal:" + res);   // eslint-disable-line no-console
+            console.debug(SCRIPT_NAME + " - response abnormal:" + res);
             this.notify.setAlertText("立てたスレに移動失敗。スレ立ては成功");
         }
         this.loading = false;
@@ -309,132 +309,7 @@ function main() {
 
     makeCommentClearButton(form.textarea);
     makeSageButton(form.dom);
-
-    form.file.dom = form.dom.querySelector('input[name="upfile"]');
-    if (form.file.dom) {
-        form.file.reader = new FileReader();
-
-        form.file.reader.addEventListener("load", () => {
-            form.file.buffer = form.file.reader.result;
-            form.file.obj = form.file.dom.files[0];
-            form.file.name = form.file.obj.name;
-            form.file.size = form.file.obj.size;
-            form.file.type = form.file.obj.type;
-            previewFile(form.file);
-        });
-
-        // ページ読み込み時にファイルが既にあれば読み込む
-        if (form.file.dom.files[0]) {
-            form.file.reader.readAsArrayBuffer(form.file.dom.files[0]);
-        }
-
-        form.file.dom.addEventListener("change", () => {
-            if (form.file.reader.readyState === FileReader.LOADING) {
-                form.file.reader.abort();
-            }
-
-            form.file.reader.readAsArrayBuffer(form.file.dom.files[0]);
-        });
-
-        if (expand_file_input) {
-            makeInputButton(form.file);
-
-            let pastearea = document.getElementById("KOSHIAN_form_pastearea");
-            if (pastearea) {
-                let timer = null;
-                pastearea.addEventListener("input", function() {
-                    // pasteイベントのタイマーをクリア
-                    if (timer) {
-                        clearTimeout(timer);
-                        timer = null;
-                    }
-                    // 貼り付けた内容にimgタグがあるか探す
-                    let pasted_image = this.getElementsByTagName("img")[0];
-                    if (pasted_image) {
-                        //console.log("KOSHIAN_form/board.js - pasted_image:");
-                        //console.dir(pasted_image);
-                        let data_uri = pasted_image.src.match(/^data:(image\/([^;]+));base64.+$/);
-                        if (data_uri) {
-                            setDataURI(data_uri);
-                        } else {
-                            try {
-                                fetch(pasted_image.src).then(function(response) {
-                                    return response.blob();
-                                }).then(function(blob) {
-                                    //console.log("KOSHIAN_form/board.js - blob.type: " + blob.type);
-                                    if (blob.type.match(/^image\//)) {
-                                        setBlob(blob);
-                                    } else {
-                                        console.log("KOSHIAN_form/board.js - blob type is not image");  // eslint-disable-line no-console
-                                    }
-                                });
-                            } catch(e) {
-                                console.error("KOSHIAN_form/board.js - fetch error: src=" + pasted_image.src + ", error=" );	// eslint-disable-line no-console
-                                console.dir(e); // eslint-disable-line no-console
-                                return;
-                            }
-                        }
-                    } else {
-                        //
-                        //console.log("KOSHIAN_form/board.js - No pasted image:");
-                        //console.dir(this);
-                    }
-                    this.innerHTML = "";
-                    this.blur();
-
-                    function setDataURI(data_uri) {
-                        let file_ext = data_uri[2];
-                        let file_type = data_uri[1];
-                        if (data_uri[0] && file_ext && file_type) {
-                            let buffer = convertDataURI2Buffer(data_uri[0]);
-                            if (buffer) {
-                                form.file.dom.value = "";
-                                form.file.buffer = buffer;
-                                form.file.name = `clipboard_image.${file_ext}`;
-                                form.file.type = file_type;
-                                form.file.obj = new File([buffer], form.file.name, { type: form.file.type } );
-                                form.file.size = form.file.obj.size;
-                                previewFile(form.file);
-                            } else {
-                                console.error("KOSHIAN_form/board.js - dataURI abnormal: " + data_uri[0]);    // eslint-disable-line no-console
-                            }
-                        } else {
-                            console.error("KOSHIAN_form/board.js - dataURI abnormal: ");    // eslint-disable-line no-console
-                            console.dir(data_uri);  // eslint-disable-line no-console
-                        }
-                    }
-
-                    function setBlob(blob) {
-                        let file_reader = new FileReader();
-                        file_reader.addEventListener("load", () => {
-                            let buffer = file_reader.result;
-                            let file_ext = blob.type.split("/")[1];
-                            let file_type = blob.type;
-                            form.file.dom.value = "";
-                            form.file.buffer = buffer;
-                            form.file.name = `clipboard_image.${file_ext}`;
-                            form.file.type = file_type;
-                            form.file.obj = new File([blob], form.file.name);
-                            form.file.size = form.file.obj.size;
-                            previewFile(form.file);
-                        });
-                        file_reader.readAsArrayBuffer(blob);
-                    }
-                });
-
-                pastearea.addEventListener("paste", function() {
-                    timer = setTimeout(() => {
-                        // クリップボードが画像ファイル以外（inputイベントが発生しない）
-                        this.innerHTML = "";
-                        this.blur();
-                        if (popup_file_dialog) form.file.dom.click();
-                    }, 200);
-                });
-            }
-        } else {
-            initInputButton(form.file);
-        }
-    }
+    setFormFileInput(form);
 }
 
 function safeGetValue(value, default_value) {
