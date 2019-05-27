@@ -680,23 +680,21 @@ function previewFile(file) {
         });
     }
 
+    // 画像の幅と高さ取得
+    if (fileType[0] == "image") {
+        preview.addEventListener("load", () => {
+            img_width = preview.naturalWidth;
+            img_height = preview.naturalHeight;
+            dispFileInfo();
+        });
+    }
+
     // プレビュー表示
     let reader = new FileReader();
     reader.onload = () => {
         preview.src = reader.result;
     };
     reader.readAsDataURL(file.obj);
-
-    // 画像の幅と高さ取得
-    if (fileType[0] == "image") {
-        let image = new Image();
-        image.onload = function() {
-            img_width = image.naturalWidth;
-            img_height = image.naturalHeight;
-            dispFileInfo();
-        };
-        image.src = URL.createObjectURL(file.obj);
-    }
 
     /**
      * ファイル情報表示
