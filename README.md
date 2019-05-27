@@ -1,6 +1,6 @@
 ## <sub><img src="koshian_form_futaba/icons/icon-48.png"></sub> KOSHIAN 返信フォーム拡張 改
 このFirefoxアドオンはふたば☆ちゃんねるで返信後のページリロードを抑制する[Pachira](https://addons.mozilla.org/ja/firefox/user/anonymous-a0bba9187b568f98732d22d51c5955a6/)氏の[KOSHIAN 返信フォーム拡張](https://addons.mozilla.org/ja/firefox/addon/koshian-返信フォーム拡張/)の非公式改変版です。  
-クリップボード内の画像ファイルを貼り付ける機能や返信時にメッセージを表示する機能などをオリジナル版に追加しています。  
+クリップボード内の画像ファイルを貼り付ける機能や添付ファイルのプレビュー機能などをオリジナル版に追加しています。  
 
 ※このアドオンはWebExtensionアドオン対応のFirefox専用となります。  
 ※他のKOSHIAN改変版などのふたば閲覧支援ツールは[こちら](https://github.com/akoya-tomo/futaba_auto_reloader_K/wiki/)。  
@@ -44,9 +44,9 @@
   （[futaba form image previewer](https://greasyfork.org/ja/scripts/36659-futaba-form-image-previewer/)にも対応しています）  
 
 ## インストール
-### **● 最新バージョン**(v1.4.0)
+### **● 最新バージョン**(v1.4.1)
 **GitHub**  
-[![インストールボタン](images/install_button.png "クリックでアドオンをインストール")](https://github.com/akoya-tomo/koshian_form_futaba_kai/releases/download/v1.4.0/koshian_form_futaba_kai-1.4.0-fx.xpi)  
+[![インストールボタン](images/install_button.png "クリックでアドオンをインストール")](https://github.com/akoya-tomo/koshian_form_futaba_kai/releases/download/v1.4.1/koshian_form_futaba_kai-1.4.1-fx.xpi)  
 ※このアドオンはオリジナル版同様に実験的アドオンになります。最新バージョンで不具合が発生する場合は[Releasesページ](https://github.com/akoya-tomo/koshian_form_futaba_kai/releases)から古いバージョンのxpiファイルをインストールしてみてください。  
 ※v1.3.0から「すべてのウェブサイトの保存されたデータへのアクセス」の権限が追加で要求されます。  
 　（Web上の画像から添付ファイルへの貼り付けに使用）  
@@ -68,7 +68,7 @@
   - 動画ファイル → ファイルダイアログが開く → 「Ctrl + V」で貼り付けして「開く」 → 添付される  
 * ![\(New\)](images/new.png "New") 異なるブラウザでコピーした画像は貼り付けできないことがあります。  
 * ![\(New\)](images/new.png "New") 「画像だけを表示」したページで画像をドラッグ選択してコピーすると貼り付けできません。「全て選択」してコピーするか、コンテキストメニューから「画像をコピー」を選択して貼り付けしてください。  
-* ![\(New\)](images/new.png "New") サイズ変更された画像はファイル名が「resized_image.jpeg」になります。  
+* ![\(New\)](images/new.png "New") サイズ変更された画像はファイル名が「resized_(元のファイル名 or image).jpeg」になります。  
 
 ## 注意事項
 * 本アドオンを有効にしたときはオリジナル版を無効にするか削除して下さい。  
@@ -82,6 +82,8 @@
 * このアドオンは文字コード変換に[encoding.js](https://github.com/polygonplanet/encoding.js)を使用しています。  
 
 ## 更新履歴
+* v1.4.1 2019-05-27
+  - 添付ファイルの貼付動作でエラーが発生したときにメッセージを表示するように修正
 * v1.4.0 2019-05-26
   - ファイルサイズが制限よりも大きいPNG・JPEGファイルを自動的に縮小する機能を追加
   - 返信後に手書きjsのキャンバスを消去する機能を追加
