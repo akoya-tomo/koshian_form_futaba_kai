@@ -348,7 +348,7 @@ function setFormFileInput(form) {   //eslint-disable-line no-unused-vars
         let result =  await new Promise((resolve) => {
             let file_reader = new FileReader();
             file_reader.addEventListener("load", () => {
-                resolve(file_reader.resut);
+                resolve(file_reader.result);
             });
             file_reader.readAsArrayBuffer(blob);
         });
