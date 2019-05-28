@@ -44,9 +44,9 @@
   （[futaba form image previewer](https://greasyfork.org/ja/scripts/36659-futaba-form-image-previewer/)にも対応しています）  
 
 ## インストール
-### **● 最新バージョン**(v1.4.1)
+### **● 最新バージョン**(v1.4.2)
 **GitHub**  
-[![インストールボタン](images/install_button.png "クリックでアドオンをインストール")](https://github.com/akoya-tomo/koshian_form_futaba_kai/releases/download/v1.4.1/koshian_form_futaba_kai-1.4.1-fx.xpi)  
+[![インストールボタン](images/install_button.png "クリックでアドオンをインストール")](https://github.com/akoya-tomo/koshian_form_futaba_kai/releases/download/v1.4.2/koshian_form_futaba_kai-1.4.2-fx.xpi)  
 ※このアドオンはオリジナル版同様に実験的アドオンになります。最新バージョンで不具合が発生する場合は[Releasesページ](https://github.com/akoya-tomo/koshian_form_futaba_kai/releases)から古いバージョンのxpiファイルをインストールしてみてください。  
 ※v1.3.0から「すべてのウェブサイトの保存されたデータへのアクセス」の権限が追加で要求されます。  
 　（Web上の画像から添付ファイルへの貼り付けに使用）  
@@ -82,6 +82,9 @@
 * このアドオンは文字コード変換に[encoding.js](https://github.com/polygonplanet/encoding.js)を使用しています。  
 
 ## 更新履歴
+* v1.4.2 2019-05-28
+  - 貼付動作のメッセージ表示の不具合を修正
+  - 画像と動画以外のファイルを添付したときはプレビューをクリアするように修正
 * v1.4.1 2019-05-27
   - 添付ファイルの貼付動作でエラーが発生したときにメッセージを表示するように修正
 * v1.4.0 2019-05-26
