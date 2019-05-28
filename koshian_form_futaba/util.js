@@ -647,6 +647,7 @@ function previewFile(file) {
         preview.loop = video_loop;
     } else {
         // 画像とWebM･mp4以外は処理を中止
+        clearPreview(file.name);
         file.loading = false;
         return;
     }
