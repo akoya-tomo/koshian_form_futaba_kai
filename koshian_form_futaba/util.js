@@ -281,8 +281,6 @@ function setFormFileInput(form) {   //eslint-disable-line no-unused-vars
 
                 pastearea.addEventListener("paste", function() {
                     form.file.loading = true;
-                    let filename = document.getElementById("KOSHIAN_form_filename");
-                    if (filename) filename.textContent = "読込中……";
                     timer = setTimeout(() => {
                         // クリップボードが画像ファイル以外（inputイベントが発生しない）
                         timer = null;
@@ -579,10 +577,6 @@ function makeInputButton(file) {
         if (pastearea) {
             pastearea.focus();
             document.execCommand("paste");
-            let filename = document.getElementById("KOSHIAN_form_filename");
-            if (filename) {
-                filename.textContent ="ファイル貼付中……";
-            }
         }
     }
 }
@@ -608,9 +602,9 @@ function clearFile(file) {
  * プレビュークリア
  * @param {string} name 初期化するファイル名文字列
  */
-function clearPreview(name = INPUT_FILE_TEXT) {
+function clearPreview(name) {
     // ファイル名初期化
-    setFilenameText(name);
+    setFilenameText(name || INPUT_FILE_TEXT);
     // プレビュー初期化
     let preview = document.getElementById("KOSHIAN_form_preview");
     if (!preview) {
