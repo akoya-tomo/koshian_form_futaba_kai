@@ -158,19 +158,18 @@ function setFormFileInput(form) {   //eslint-disable-line no-unused-vars
     if (form.file.dom) {
         form.file.reader = new FileReader();
 
-        form.file.reader.addEventListener("load", () => {
+        form.file.reader.addEventListener("load", async () => {
             form.file.buffer = form.file.reader.result;
             form.file.obj = form.file.dom.files[0];
             form.file.name = form.file.obj.name;
             form.file.size = form.file.obj.size;
             form.file.type = form.file.obj.type;
             if (use_image_resize && form.file.size > form.file.max_size && form.file.type.match(/png|jpeg/)) {
-                resizeImage(form.file.obj).then((result) => {
-                    if (!result) {
-                        // サイズ変更エラーでもオリジナルサイズのままプレビュー表示する（ファイルがセット済みのため）
-                    }
-                    previewFile(form.file);
-                });
+                let result = await resizeImage(form.file.obj);
+                if (!result) {
+                    // サイズ変更例外エラーでもオリジナルサイズのままプレビュー表示する（ファイルがセット済みのため）
+                }
+                previewFile(form.file);
             } else {
                 previewFile(form.file);
             }
@@ -197,7 +196,7 @@ function setFormFileInput(form) {   //eslint-disable-line no-unused-vars
                 form.file.max_size = Math.max(max_file_size, 512000); // 500KB以下にはならないと想定
             }
         }
-        console.debug(SCRIPT_NAME + " - max file size: " + form.file.max_size + "byte");
+        console.debug(SCRIPT_NAME + "/setFormFileInput - max file size: " + form.file.max_size + "byte");
 
         if (expand_file_input) {
             makeInputButton(form.file);
@@ -205,7 +204,7 @@ function setFormFileInput(form) {   //eslint-disable-line no-unused-vars
             let pastearea = document.getElementById("KOSHIAN_form_pastearea");
             if (pastearea) {
                 let timer = null;
-                pastearea.addEventListener("input", function() {
+                pastearea.addEventListener("input", async function() {
                     // pasteイベントのタイマーをクリア
                     if (timer) {
                         clearTimeout(timer);
@@ -214,66 +213,67 @@ function setFormFileInput(form) {   //eslint-disable-line no-unused-vars
                     // 貼り付けた内容にimgタグがあるか探す
                     let pasted_image = this.getElementsByTagName("img")[0];
                     if (pasted_image) {
-                        //console.log(SCRIPT_NAME + " - pasted_image: " + pasted_image.src);
+                        //console.log(SCRIPT_NAME + "/setFormFileInput - pasted_image:");
                         //console.dir(pasted_image);
                         let data_uri = pasted_image.src.match(/^data:(image\/([^;]+));base64.+$/);
                         if (data_uri) {
                             // ファイルからの貼付
-                            convertDataURI2File(data_uri).then((result) => {
-                                if (result) {
-                                    previewFile(form.file);
-                                } else {
-                                    form.file.loading = false;
-                                    clearFile(form.file);
-                                    resetFilenameText("貼付失敗（画像データ異常）");
-                                }
-                            });
-                        } else {
-                            // Webからの貼付
-                            fetch(pasted_image.src).then((response) => {
-                                if (response.ok) {
-                                    return response.blob();
-                                }
-                                throw new Error(response.status);
-                            }).then((blob) => {
-                                //console.log(SCRIPT_NAME + " - blob.type: " + blob.type);
-                                if (blob.type.match(/^image\//)) {
-                                    if (use_image_resize && blob.size > form.file.max_size && blob.type.match(/png|jpeg/)) {
-                                        resizeImage(blob).then((result) => {
-                                            if (result) {
-                                                previewFile(form.file);
-                                            } else {
-                                                form.file.loading = false;
-                                                clearFile(form.file);
-                                                resetFilenameText("サイズ変更エラー");
-                                            }
-                                        });
-                                    } else {
-                                        let name = `clipboard_image.${blob.type.split("/")[1]}`;
-                                        convertBlob2File(blob, name).then(() => {
-                                            previewFile(form.file);
-                                        });
-                                    }
-                                } else {
-                                    form.file.loading = false;
-                                    clearFile(form.file);
-                                    resetFilenameText("貼付失敗（ファイルタイプ異常）");
-                                    console.debug(SCRIPT_NAME + " - blob type is not image: blob.type = " + blob.type);
-                                }
-                            }).catch((e) => {
+                            let result = await convertDataURI2FormFile(data_uri);
+                            if (result) {
+                                previewFile(form.file);
+                            } else {
                                 form.file.loading = false;
                                 clearFile(form.file);
-                                resetFilenameText("貼付失敗（通信エラー）: " + e.message);
-                                console.error(SCRIPT_NAME + " - fetch error: src = " + pasted_image.src);
-                                console.error(e.name + ": " + e.message);
+                                setFilenameText("貼付失敗(画像データ異常)");
+                            }
+                        } else {
+                            let e_text = "貼付失敗";
+                            try {
+                                // Webからの貼付
+                                let response = await fetch(pasted_image.src).catch((e) =>{
+                                    e_text += "(通信異常)";
+                                    throw new Error(e);
+                                });
+                                if (!response.ok) {
+                                    e_text += `(通信異常): ${response.status}`;
+                                    throw new Error(response.statusText);
+                                }
+                                let blob = await response.blob();
+                                //console.log(SCRIPT_NAME + "/setFormFileInput - blob.type: " + blob.type);
+                                if (blob.type.match(/^image\//)) {
+                                    if (use_image_resize && blob.size > form.file.max_size && blob.type.match(/png|jpeg/)) {
+                                        let result = await resizeImage(blob);
+                                        if (result) {
+                                            previewFile(form.file);
+                                        } else {
+                                            form.file.loading = false;
+                                            clearFile(form.file);
+                                            setFilenameText("サイズ変更失敗");
+                                        }
+                                    } else {
+                                        let name = `clipboard_image.${blob.type.split("/")[1]}`;
+                                        await convertBlob2FormFile(blob, name);
+                                        previewFile(form.file);
+                                    }
+                                } else {
+                                    console.debug(SCRIPT_NAME + "/setFormFileInput - blob type is not image: blob.type = " + blob.type);
+                                    form.file.loading = false;
+                                    clearFile(form.file);
+                                    setFilenameText("貼付失敗(画像データ異常)");
+                                }
+                            } catch (e) {
+                                console.error(SCRIPT_NAME + "/setFormFileInput - " + e.name + ": " + e.message);
                                 console.dir(e);
-                            });
+                                form.file.loading = false;
+                                clearFile(form.file);
+                                setFilenameText(e_text);
+                            }
                         }
                     } else {
-                        form.file.loading = false;
-                        resetFilenameText(form.file.name);
-                        //console.log(SCRIPT_NAME + " - No pasted image:");
+                        //console.log(SCRIPT_NAME + "/setFormFileInput - No pasted image:");
                         //console.dir(this);
+                        form.file.loading = false;
+                        setFilenameText(form.file.name);
                     }
                     this.innerHTML = "";
                     this.blur();
@@ -287,7 +287,7 @@ function setFormFileInput(form) {   //eslint-disable-line no-unused-vars
                         // クリップボードが画像ファイル以外（inputイベントが発生しない）
                         timer = null;
                         form.file.loading = false;
-                        resetFilenameText(form.file.name);
+                        setFilenameText(form.file.name);
                         this.innerHTML = "";
                         this.blur();
                         if (popup_file_dialog) {
@@ -307,9 +307,9 @@ function setFormFileInput(form) {   //eslint-disable-line no-unused-vars
      *     {string} data_uri[0] DataURI文字列
      *     {string} data_uri[1] ファイルタイプ文字列
      *     {string} data_uri[2] 拡張子文字列
-     * @return {boolean} 正常に変換できたか
+     * @return {boolean} 正常にセットできたか
      */
-    async function convertDataURI2File(data_uri) {
+    async function convertDataURI2FormFile(data_uri) {
         let file_type = data_uri[1];
         let file_ext = data_uri[2];
         if (data_uri[0] && file_type && file_ext) {
@@ -331,11 +331,11 @@ function setFormFileInput(form) {   //eslint-disable-line no-unused-vars
                     return true;
                 }
             } else {
-                console.debug(SCRIPT_NAME + " - dataURI abnormal: " + data_uri[0]);
+                console.debug(SCRIPT_NAME + "/convertDataURI2File - dataURI abnormal: " + data_uri[0]);
                 return false;
             }
         } else {
-            console.debug(SCRIPT_NAME + " - dataURI abnormal: ");
+            console.debug(SCRIPT_NAME + "/convertDataURI2File - dataURI abnormal: ");
             console.dir(data_uri);
             return false;
         }
@@ -344,9 +344,9 @@ function setFormFileInput(form) {   //eslint-disable-line no-unused-vars
     /**
      * BlobからFileへ変換して返信フォームファイルオブジェクト(form.file)にセット
      * @param {Object} blob 添付ファイルのBlobオブジェクト
-     * @param {string} filename 添付ファイル名の文字列
+     * @param {string} name 添付ファイル名の文字列
      */
-    async function convertBlob2File(blob, filename) {
+    async function convertBlob2FormFile(blob, name) {
         let result =  await new Promise((resolve) => {
             let file_reader = new FileReader();
             file_reader.addEventListener("load", () => {
@@ -357,28 +357,26 @@ function setFormFileInput(form) {   //eslint-disable-line no-unused-vars
 
         form.file.dom.value = "";
         form.file.buffer = result;
-        form.file.name = filename || `file.${blob.type.split("/")[1]}`;
+        name = name || `file.${blob.type.split("/")[1]}`;
+        form.file.name = name;
         form.file.type = blob.type;
-        form.file.obj = new File([blob], filename);
+        form.file.obj = new File([blob], name);
         form.file.size = form.file.obj.size;
     }
 
     /**
-     * 画像ファイルをファイル制限サイズ以下へ変更
+     * 画像ファイルをファイル制限サイズ以下へ変更して返信フォームファイルオブジェクト(form.file)にセット
      * @param {Object} obj 画像ファイルのオブジェクト(File or Blob)
-     * @return {boolean} 正常に処理が完了したか
+     * @return {boolean} 正常にセットが完了したか
      */
     async function resizeImage(obj) {
-        let filename = document.getElementById("KOSHIAN_form_filename");
-        if (filename) {
-            filename.textContent ="ファイル変換中……";
-        }
+        setFilenameText("ファイル変換中……");
         let result =  await new Promise((resolve) => {
             let img = new Image;
             img.onload = async () => {
                 URL.revokeObjectURL(img.src);
                 let blob = await getResizedBlob(img).catch((e) => {
-                    console.error(SCRIPT_NAME + " - blob resize error");
+                    console.error(SCRIPT_NAME + "/resizeImage - blob resize error");
                     console.error(e.name + ": " + e.message);
                     console.dir(e);
                     resolve(false);
@@ -388,18 +386,16 @@ function setFormFileInput(form) {   //eslint-disable-line no-unused-vars
                     if (obj.name) {
                         name = obj.type == "image/jpeg" ? `resized_${obj.name}` : `resized_${obj.name}.jpeg`;
                     }
-                    convertBlob2File(blob, name).then(() => {
-                        resolve(true);
-                    });
+                    await convertBlob2FormFile(blob, name);
+                    resolve(true);
                 } else {
                     let name = obj.name || `clipboard_image.${obj.type.split("/")[1]}`;
-                    convertBlob2File(obj, name).then(() => {
-                        resolve(true);
-                    });
+                    await convertBlob2FormFile(obj, name);
+                    resolve(true);
                 }
             };
             img.onerror = (e) => {
-                console.error(SCRIPT_NAME + " - image load error");
+                console.error(SCRIPT_NAME + "/resizeImage - image load error");
                 console.error(e.name + " : " + e.message);
                 console.dir(e);
                 resolve(false);
@@ -447,7 +443,7 @@ function setFormFileInput(form) {   //eslint-disable-line no-unused-vars
                         resolve(blob);
                     }, "image/jpeg", blob_opt[i].quality);
                 });
-                //console.log(SCRIPT_NAME + " - blob quolity: " + blob_opt[i].quality + " scale:" + blob_opt[i].scale + " size: " + blob.size);
+                //console.log(SCRIPT_NAME + "/getResizedBlob - blob quolity: " + blob_opt[i].quality + " scale:" + blob_opt[i].scale + " size: " + blob.size);
                 if (blob.size <= form.file.max_size) {
                     return blob;
                 }
@@ -614,10 +610,7 @@ function clearFile(file) {
  */
 function clearPreview(name = INPUT_FILE_TEXT) {
     // ファイル名初期化
-    let filename = document.getElementById("KOSHIAN_form_filename");
-    if (filename) {
-        filename.textContent = name;
-    }
+    setFilenameText(name);
     // プレビュー初期化
     let preview = document.getElementById("KOSHIAN_form_preview");
     if (!preview) {
@@ -639,10 +632,7 @@ function clearPreview(name = INPUT_FILE_TEXT) {
  * @param {Object} file 添付ファイルの情報を格納したオブジェクト
  */
 function previewFile(file) {
-    let filename = document.getElementById("KOSHIAN_form_filename");
-    if (filename) {
-        filename.textContent = file.name;
-    }
+    setFilenameText(file.name);
     if (preview_max_size == 0) {
         file.loading = false;
         return;
@@ -725,9 +715,9 @@ function previewFile(file) {
 }
 
 /**
- * ファイル名表示リセット
+ * ファイル名表示セット
  */
-function resetFilenameText(text) {
+function setFilenameText(text) {
     let filename = document.getElementById("KOSHIAN_form_filename");
     if (filename) {
         filename.textContent = text || INPUT_FILE_TEXT;
