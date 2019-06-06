@@ -512,7 +512,9 @@ function onSettingChanged(changes, areaName) {
     let form = document.getElementById("KOSHIAN_fm");
     if (form) {
         let textarea = form.getElementsByTagName("textarea")[0];
-        if (textarea) makeCommentClearButton(textarea);
+        if (textarea) {
+            makeCommentClearButton(textarea);
+        }
         makeSageButton(form);
     }
     let droparea = document.getElementById("KOSHIAN_form_preview");
