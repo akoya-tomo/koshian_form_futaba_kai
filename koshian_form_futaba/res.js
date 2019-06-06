@@ -57,7 +57,7 @@ class Notify {
             this.notify.appendChild(this.text);
             document.body.appendChild(this.notify);
 
-            this.moveTo(10000);
+            this.moveTo();
         }
     }
 
@@ -73,15 +73,11 @@ class Notify {
         this.notify.style.fontWeight = "bold";
     }
 
-    moveTo(index) {
-        let tables = this.thre.getElementsByTagName("table");
-
-        if (tables.length == 0 || index == -1) { // 0レス
-            let blockquotes = this.thre.getElementsByTagName("blockquote");
-            this.thre.insertBefore(this.notify, blockquotes[0].nextElementSibling);
+    moveTo(target = null) {
+        if (target) {
+            this.thre.insertBefore(this.notify, target.nextElementSibling);
         } else {
-            index = Math.min(index, tables.length - 1);
-            this.thre.insertBefore(this.notify, tables[index].nextElementSibling);
+            this.thre.appendChild(this.notify);
         }
     }
 
@@ -168,7 +164,7 @@ class Form {
         );
 
         xhr.send(this.buffer);
-        this.notify.moveTo(10000);
+        this.notify.moveTo();
         this.notify.setText("返信中……");
     }
 
@@ -343,25 +339,39 @@ class Form {
         let res_num = responses ? responses.length : 0;
         let new_res_num = new_responses ? new_responses.length : 0;
 
+        // 削除されたレスの表示設定を取得
+        let ddbut = document.getElementById("ddbut");
+        let is_ddbut_shown = ddbut ? ddbut.textContent == "隠す" : false;
+
+        // スクロール位置を保存
+        let sy = document.documentElement.scrollTop;
+
         if (res_num == new_res_num) {
             //
         } else if (new_res_num == 0) {
             //
         } else {
-            for (let i = res_num, inserted = res_num == 0 ? thre.getElementsByTagName("blockquote")[0] : responses[res_num - 1]; i < new_res_num; ++i) {
-                inserted = thre.insertBefore(new_responses[res_num], inserted.nextElementSibling);
+            let fragment = document.createDocumentFragment();
+            for (let i = res_num; i < new_res_num; ++i) {
+                let inserted = fragment.appendChild(new_responses[res_num]);
+                // 削除された新着レスへ削除レス表示設定を反映
+                if (inserted.className == "deleted") {
+                    inserted.style.display = is_ddbut_shown ? "table" : "none";
+                }
             }
-
-            this.notify.moveTo(res_num - 1);
+            thre.appendChild(fragment);
+    
             this.notify.setText(`新着レス${new_res_num - res_num}`);
             fixFormPosition();
 
             if (auto_scroll && responses.length > res_num) {
                 let ch = document.documentElement.clientHeight;
-                let sy = document.documentElement.scrollTop;
                 let rect = responses[res_num].getBoundingClientRect();
                 let to = rect.top + sy - ch / 2;
                 document.documentElement.scrollTo(document.documentElement.scrollLeft, to);
+            } else {
+                // スクロール位置を新着レス挿入前に戻す(Fx66+ スクロールアンカー対策)
+                document.documentElement.scrollTop = sy;
             }
 
             document.dispatchEvent(new CustomEvent("KOSHIAN_reload"));
@@ -502,7 +512,9 @@ function onSettingChanged(changes, areaName) {
     let form = document.getElementById("KOSHIAN_fm");
     if (form) {
         let textarea = form.getElementsByTagName("textarea")[0];
-        if (textarea) makeCommentClearButton(textarea);
+        if (textarea) {
+            makeCommentClearButton(textarea);
+        }
         makeSageButton(form);
     }
     let droparea = document.getElementById("KOSHIAN_form_preview");
