@@ -8,7 +8,6 @@
     createBoundary,
     convertUnicode2Buffer,
     appendBuffer,
-    isAscii,
     makeCommentClearButton,
     makeSageButton,
     setFormFileInput,
@@ -138,23 +137,18 @@ class Form {
         // フォーム内の要素からマルチパートフォームデータ作成
         for (let elm of this.dom.elements) {
             if (elm.name) {
-                if (elm.tagName == "TEXTAREA" || elm.type == "text" || elm.name == "chrenc") {
-                    // テキスト
-                    this.setText(elm.name, elm.value);
-                } else if (elm.type == "file") {
+                if (elm.type == "file") {
                     // ファイル
                     this.setFile(elm.name);
                 } else if (elm.type != "checkbox" || elm.checked) {
-                    if (isAscii(elm.value)) {
-                        // パラメータ
-                        this.setParam(elm.name, elm.value);
-                    } else {
-                        // テキスト
-                        this.setText(elm.name, elm.value);
-                    }
+                    // パラメータ
+                    this.setParam(elm.name, elm.value);
                 }
             }
         }
+
+        // 送信モード
+        this.setParam("responsemode", "ajax");
 
         // フッタ
         this.buffer = appendBuffer(this.buffer, 
@@ -166,19 +160,6 @@ class Form {
         xhr.send(this.buffer);
         this.notify.moveTo();
         this.notify.setText("返信中……");
-    }
-
-    setText(name, value) {
-        let buffer = convertUnicode2Buffer("UTF8", 
-            "--" + this.boundary + "\r\n" +
-            `Content-Disposition: form-data; name="${name}"\r\n` +
-            "Content-Type: text/plain; charset=Shift_JIS\r\n" +
-            "\r\n"
-        );
-        let sjis_buffer = convertUnicode2Buffer("Shift_JIS", value);
-        buffer = appendBuffer(buffer, sjis_buffer);
-        buffer = appendBuffer(buffer, convertUnicode2Buffer("UTF8", "\r\n"));
-        this.buffer = appendBuffer(this.buffer, buffer);
     }
 
     setFile(name) {
@@ -235,17 +216,15 @@ class Form {
     }
 
     isSuccess(res) {
-        let success_mes = /スレッド.+に切り替えます/;
-        return success_mes.test(res);
+        return res == "ok";
     }
 
     onResponseError(res) {
-        let error_mes = /<font color=red size=5><b>(.+?)<br><br>/;
-        let mes = error_mes.exec(res);  // res内のエラーメッセージを取得
-        let text;
-        if (mes) {
-            text = mes[1].replace(/<br>/ig, "。");    // mes内の<br>を。に置換
-        } else {
+        let text = res;
+        if (res.match(/<html[> ]|<body[> ]/i)) {
+            text = res.match(/<title(?:| [^>]*)>(.*?)<\/title(?:| [^>]*)>/i)[1];
+        }
+        if (!text) {
             console.debug(SCRIPT_NAME + " - onResponse error: " + res);
             text = "返信処理でエラーが発生しました";
         }
