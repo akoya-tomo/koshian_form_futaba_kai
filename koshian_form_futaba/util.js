@@ -1,6 +1,6 @@
 /* globals Encoding */
 /* globals SCRIPT_NAME */
-/* globals INPUT_FILE_TEXT */
+/* globals INPUT_FILE_TEXT, EMOJI_RANGE */
 /* globals use_comment_clear, use_sage, use_image_resize, expand_file_input, preview_max_size, video_autoplay, video_loop, popup_file_dialog, droparea_text */
 /* eslint-disable no-unused-vars */
 /* globals 
@@ -8,6 +8,7 @@
     convertUnicode2Buffer,
     appendBuffer,
     isAscii,
+    convertSurrogate2HtmlEntity,
     makeCommentClearButton,
     makeSageButton,
     setFormFileInput,
@@ -90,6 +91,44 @@ function isAscii(str) { //eslint-disable-line no-unused-vars
     } else {
         return false;
     }
+}
+
+/**
+ * 文字列内のサロゲートペアをHTMLエンティティに変換
+ * @param {string} str 変換する文字列
+ * @return {string} HTMLエンティティに変換した文字列
+ */
+function convertSurrogate2HtmlEntity(str) { //eslint-disable-line no-unused-vars
+    let result = "";
+    for (let char of str) {
+        let code_point = char.codePointAt(0);
+        if (code_point > 0xFFFF || isEmoji(code_point)) {
+            // サロゲートペアか絵文字ならHTMLエンティティ化
+            result += `&#${code_point};`;
+        } else {
+            result += char;
+        }
+    }
+    return result;
+}
+
+/**
+ * コードポイントが絵文字か判定
+ * @param {number} code_point 判定する文字のコードポイント（0xFFFF以下）
+ * @return {boolean} 絵文字か
+ */
+function isEmoji(code_point) { //eslint-disable-line no-unused-vars
+    if (!code_point) {
+        return false;
+    }
+    for (let i = 0, num = EMOJI_RANGE.length; i < num; ++i) {
+        let low = EMOJI_RANGE[i][0];
+        let high = EMOJI_RANGE[i][1] || low;
+        if (code_point >= low && code_point <= high) {
+            return true;
+        }
+    }
+    return false;
 }
 
 /**
