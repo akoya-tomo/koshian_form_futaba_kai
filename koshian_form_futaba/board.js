@@ -9,6 +9,7 @@
     convertUnicode2Buffer,
     appendBuffer,
     isAscii,
+    convertSurrogate2HtmlEntity,
     makeCommentClearButton,
     makeSageButton,
     setFormFileInput,
@@ -157,13 +158,14 @@ class Form {
     }
 
     setText(name, value) {
+        let entity = convertSurrogate2HtmlEntity(value);
         let buffer = convertUnicode2Buffer("UTF8", 
             "--" + this.boundary + "\r\n" +
             `Content-Disposition: form-data; name="${name}"\r\n` +
             "Content-Type: text/plain; charset=Shift_JIS\r\n" +
             "\r\n"
         );
-        let sjis_buffer = convertUnicode2Buffer("Shift_JIS", value);
+        let sjis_buffer = convertUnicode2Buffer("Shift_JIS", entity);
         buffer = appendBuffer(buffer, sjis_buffer);
         buffer = appendBuffer(buffer, convertUnicode2Buffer("UTF8", "\r\n"));
         this.buffer = appendBuffer(this.buffer, buffer);

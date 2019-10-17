@@ -44,9 +44,9 @@
   （[futaba form image previewer](https://greasyfork.org/ja/scripts/36659-futaba-form-image-previewer/)にも対応しています）  
 
 ## インストール
-### **● 最新バージョン**(v1.4.5)
+### **● 最新バージョン**(v1.4.6)
 **GitHub**  
-[![インストールボタン](images/install_button.png "クリックでアドオンをインストール")](https://github.com/akoya-tomo/koshian_form_futaba_kai/releases/download/v1.4.5/koshian_form_futaba_kai-1.4.5-fx.xpi)  
+[![インストールボタン](images/install_button.png "クリックでアドオンをインストール")](https://github.com/akoya-tomo/koshian_form_futaba_kai/releases/download/v1.4.6/koshian_form_futaba_kai-1.4.6-fx.xpi)  
 ※このアドオンはオリジナル版同様に実験的アドオンになります。最新バージョンで不具合が発生する場合は[Releasesページ](https://github.com/akoya-tomo/koshian_form_futaba_kai/releases)から古いバージョンのxpiファイルをインストールしてみてください。  
 ※v1.3.0から「すべてのウェブサイトの保存されたデータへのアクセス」の権限が追加で要求されます。  
 　（Web上の画像から添付ファイルへの貼り付けに使用）  
@@ -79,14 +79,15 @@
   貼り付けできないサイトや画像があればご連絡ください。  
 
 ## 既知の不具合
-* ![\(New\)](images/new.png "New") 絵文字を含むコメントでスレ立てすると文字化けする。  
-* ![\(New\)](images/new.png "New") ローカルファイルのWebPが貼り付けできない。（Web上のWebPは貼り付け可）  
+* ローカルファイルのWebPが貼り付けできない。（Web上のWebPは貼り付け可）  
 
 ## ライセンス
 * このアドオンは文字コード変換に[encoding.js](https://github.com/polygonplanet/encoding.js)を使用しています。  
-* ![\(New\)](images/new.png "New") フォーム送信の処理でふたば☆ちゃんねるのbase4ajax.jsのコードを参考にしています。  
+* フォーム送信の処理でふたば☆ちゃんねるのbase4ajax.jsのコードを参考にしています。  
 
 ## 更新履歴
+* v1.4.6 2019-10-18
+  - スレ立てで絵文字を含むコメントを送信すると文字化けする不具合を修正
 * v1.4.5 2019-10-16
   - レス送信モードで絵文字を含むコメントを送信すると文字化けする不具合を修正（スレ立ては未修正）
 * v1.4.4 2019-06-07

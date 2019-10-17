@@ -332,7 +332,7 @@ class Form {
         } else {
             let fragment = document.createDocumentFragment();
             for (let i = res_num; i < new_res_num; ++i) {
-                let inserted = fragment.appendChild(new_responses[res_num]);
+                let inserted = fragment.appendChild(document.importNode(new_responses[i], true));
                 // 削除された新着レスへ削除レス表示設定を反映
                 if (inserted.className == "deleted") {
                     inserted.style.display = is_ddbut_shown ? "table" : "none";
